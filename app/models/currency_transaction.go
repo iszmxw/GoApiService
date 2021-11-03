@@ -43,7 +43,9 @@ func (m *CurrencyTransaction) GetPaginate(where map[string]interface{}, orderBy 
 	tableName := m.tableName()
 	table := mysql.DB.Debug().Table(Prefix(tableName))
 	table = table.Where(where)
+	table = table.Joins(Prefix("left join $_currency on $_currency.id=$_currency_transaction.currency_id"))
 	table.Count(&lists.Total)
+	table = table.Select(Prefix("$_currency_transaction.*,$_currency.trading_pair_id,$_currency.name"))
 	// 设置分页参数
 	lists.CurrentPage = Page
 	lists.PageSize = Limit

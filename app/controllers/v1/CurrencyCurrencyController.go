@@ -39,12 +39,12 @@ func (h *CurrencyCurrencyController) HistoryHandler(c *gin.Context) {
 	userInfo, _ := c.Get("user")
 	email := userInfo.(map[string]interface{})["email"].(string)
 	where := cmap.New().Items()
-	where["email"] = email
+	where[models.Prefix("$_currency_transaction.email")] = email
 	if len(request.CurrencyId) > 0 {
-		where["currency_id"] = request.CurrencyId
+		where[models.Prefix("$_currency_transaction.currency_id")] = request.CurrencyId
 	}
 	if len(request.Status) > 0 {
-		where["status"] = request.Status
+		where[models.Prefix("$_currency_transaction.status")] = request.Status
 	}
 	// 绑定接收的 json 数据到结构体中
 	DB.GetPaginate(where, request.OrderBy, int64(request.Page), int64(request.Limit), &lists)
@@ -275,20 +275,41 @@ func (h *CurrencyCurrencyController) CancelOrderHandler(c *gin.Context) {
 			models.Prefix("$_currency_transaction.id"):    params.Id},
 		).
 		Joins(models.Prefix("left join $_currency on $_currency.id=$_currency_transaction.currency_id")).
-		Select(models.Prefix("$_currency_transaction.*,$_currency.trading_pair_id")).Find(&CurrencyTransaction)
+		Select(models.Prefix("$_currency_transaction.*,$_currency.trading_pair_id,$_currency.name")).Find(&CurrencyTransaction)
 	if CurrencyTransaction.Status == "0" {
-		// 钱包搜索条件
-		whereUsersWallet := map[string]interface{}{"user_id": userId, "trading_pair_id": CurrencyTransaction.CurrencyId}
-		DB.Model(models.UsersWallet{}).Where(whereUsersWallet).Find(&UsersWallet)
-		// 退还金额到账户
-		UsersWallet.Available = UsersWallet.Available + CurrencyTransaction.Price
-		uErr := DB.Model(models.UsersWallet{}).Where(whereUsersWallet).Update("available", UsersWallet.Available).Error
-		if uErr != nil {
-			fmt.Println(uErr.Error())
-			DB.Rollback()
-			echo.Error(c, "OperationFailed", uErr.Error())
-			return
+		// 买入订单撤销
+		if CurrencyTransaction.TransactionType == "1" {
+			// 钱包搜索条件
+			whereUsersWallet := map[string]interface{}{"user_id": userId, "type": "1", "trading_pair_id": CurrencyTransaction.TradingPairId}
+			DB.Model(models.UsersWallet{}).Where(whereUsersWallet).Find(&UsersWallet)
+			// 退还消费的金额到账户
+			UsersWallet.Available = UsersWallet.Available + CurrencyTransaction.Price
+			uErr := DB.Model(models.UsersWallet{}).Where(whereUsersWallet).Update("available", UsersWallet.Available).Error
+			if uErr != nil {
+				fmt.Println(uErr.Error())
+				DB.Rollback()
+				echo.Error(c, "OperationFailed", uErr.Error())
+				return
+			}
 		}
+
+		// 卖出订单撤销
+		if CurrencyTransaction.TransactionType == "2" {
+			// 钱包搜索条件
+			whereUsersWallet := map[string]interface{}{"user_id": userId, "type": "1", "trading_pair_name": CurrencyTransaction.Name}
+			DB.Model(models.UsersWallet{}).Where(whereUsersWallet).Find(&UsersWallet)
+			// 退还卖出的金额到账户
+			ClinchNum, _ := strconv.ParseFloat(CurrencyTransaction.ClinchNum, 64)
+			UsersWallet.Available = UsersWallet.Available + ClinchNum
+			uErr := DB.Model(models.UsersWallet{}).Where(whereUsersWallet).Update("available", UsersWallet.Available).Error
+			if uErr != nil {
+				fmt.Println(uErr.Error())
+				DB.Rollback()
+				echo.Error(c, "OperationFailed", uErr.Error())
+				return
+			}
+		}
+
 	}
 	where := cmap.New().Items()
 	where["email"] = userInfo.(map[string]interface{})["email"]

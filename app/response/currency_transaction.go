@@ -10,6 +10,7 @@ type CurrencyTransaction struct {
 	Email           string             `json:"email"`            //用户邮箱
 	OrderNumber     string             `json:"order_number"`     //订单号
 	CurrencyId      int                `json:"currency_id"`      //币种
+	Name            string             `json:"name"`             //币种名称
 	TradingPairId   int                `json:"trading_pair_id"`  //交易对id
 	CurrencyName    string             `json:"currency_name"`    //币种名称 例如：BTC/USDT（币种/交易对）
 	OrderType       string             `json:"order_type"`       //挂单类型：1-限价 2-市价
