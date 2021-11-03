@@ -3,7 +3,10 @@ package bootstrap
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	gs "github.com/swaggo/gin-swagger"
+	"github.com/swaggo/gin-swagger/swaggerFiles"
 	"goapi/app/middlewares/v1"
+	_ "goapi/docs"
 	"goapi/routes"
 )
 
@@ -13,6 +16,8 @@ func SetupRoute() *gin.Engine {
 	router := gin.Default()
 	router.Use(v1.TraceLogger()) // 日志追踪
 	router.Use(v1.Cors())        // 跨域
+	// swagger docs 文档
+	router.GET("/docs/*any", gs.WrapHandler(swaggerFiles.Handler))
 	// v1 版本
 	apiV1 := router.Group("/v1")
 	Test := router.Group("/test")

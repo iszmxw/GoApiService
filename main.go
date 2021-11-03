@@ -12,6 +12,20 @@ func init() {
 	config.Initialize()
 }
 
+// @title 用户端接口服务
+// @version 3.0
+// @description 3.0版本，基于之前的2.0改造的
+// @termsOfService http://127.0.0.1/docs/index.html
+
+// @contact.name 追梦小窝
+// @contact.url http://github.com/iszmxw
+// @contact.email mail@54zm.com
+
+// @license.name Apache 2.0
+// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @host 127.0.0.1
+// @BasePath
 func main() {
 	// 初始化 SQL
 	fmt.Println("初始化 SQL")

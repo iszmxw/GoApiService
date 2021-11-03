@@ -25,7 +25,16 @@ type LoginController struct {
 	BaseController
 }
 
-// LoginHandler 登录
+// LoginHandler 登录接口
+// @Summary 登录接口
+// @Description 提交注册的邮箱和密码即可登录
+// @Tags 登录接口
+// @Accept multipart/form-data
+// @Produce application/json
+// @Param object formData requests.UserLogin false "查询参数"
+// @Security ApiKeyAuth
+// @Success 200 {} echo.Success
+// @Router /v1/api/user/login [post]
 func (h *LoginController) LoginHandler(c *gin.Context) {
 	// 初始化数据模型结构体
 	var params requests.UserLogin
