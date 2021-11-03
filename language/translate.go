@@ -2,6 +2,9 @@ package language
 
 import (
 	"goapi/language/en"
+	"goapi/language/es"
+	"goapi/language/ja"
+	"goapi/language/ko"
 	"goapi/language/zh"
 	"reflect"
 )
@@ -19,10 +22,16 @@ func Lang(zh string) *Type {
 func (l *Type) GetValidatorCode(name string) string {
 	var ValidatorCode interface{}
 	switch l.Lang {
-	case "zh":
-		ValidatorCode = &zh.ValidatorCode{}
 	case "en":
 		ValidatorCode = &en.ValidatorCode{}
+	case "es":
+		ValidatorCode = &es.ValidatorCode{}
+	case "ja":
+		ValidatorCode = &ja.ValidatorCode{}
+	case "ko":
+		ValidatorCode = &ko.ValidatorCode{}
+	case "zh":
+		ValidatorCode = &zh.ValidatorCode{}
 	default:
 		ValidatorCode = &en.ValidatorCode{}
 	}
@@ -37,17 +46,23 @@ func (l *Type) GetValidatorCode(name string) string {
 func (l *Type) GetErrorCode(name string) (string, string) {
 	var ErrorCode interface{}
 	switch l.Lang {
-	case "zh":
-		ErrorCode = &zh.ErrorCode{}
 	case "en":
 		ErrorCode = &en.ErrorCode{}
+	case "es":
+		ErrorCode = &es.ErrorCode{}
+	case "ja":
+		ErrorCode = &ja.ErrorCode{}
+	case "ko":
+		ErrorCode = &ko.ErrorCode{}
+	case "zh":
+		ErrorCode = &zh.ErrorCode{}
 	default:
 		ErrorCode = &en.ErrorCode{}
 	}
 	t := reflect.TypeOf(ErrorCode).Elem()
 	field, ok := t.FieldByName(name)
 	if !ok {
-		return "500", "未知错误"
+		return "500", "unknown mistake"
 	}
 	return field.Tag.Get("code"), field.Tag.Get("msg")
 }

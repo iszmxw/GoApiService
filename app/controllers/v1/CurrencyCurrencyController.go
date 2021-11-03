@@ -98,7 +98,7 @@ func (h *CurrencyCurrencyController) TransactionHandler(c *gin.Context) {
 	}
 	addData.CurrencyName = Currency.Name + "/" + Currency.TradingPairName // 币种名称 例如：BTC/USDT（币种/交易对）
 
-	// 查询用户钱包信息
+	// 1、查询用户钱包对的钱包信息
 	where := cmap.New().Items()
 	where["user_id"] = userId
 	where["status"] = "0" // 0正常 1锁定
@@ -106,15 +106,33 @@ func (h *CurrencyCurrencyController) TransactionHandler(c *gin.Context) {
 	where["trading_pair_id"] = Currency.TradingPairId
 	var UsersWallet response.UsersWallet
 	DB.Model(models.UsersWallet{}).Where(where).Find(&UsersWallet)
-	// 用户可用余额不足
+	// 用户钱包对可用余额不足
 	if UsersWallet.Available <= 0 || UsersWallet.Id <= 0 {
-		log := fmt.Sprintf("%v <= 0 || %v <= 0", UsersWallet.Available, UsersWallet.Id)
+		log := fmt.Sprintf("UsersWallet.Available（%v） <= 0 || UsersWallet.Id（%v） <= 0", UsersWallet.Available, UsersWallet.Id)
 		logger.Info(UsersWallet)
 		logger.Error(errors.New(log))
 		DB.Rollback()
 		echo.Error(c, "InsufficientBalance", "")
 		return
 	}
+	// 2、查询用户交易对的钱包信息
+	where2 := cmap.New().Items()
+	where2["user_id"] = userId
+	where2["status"] = "0" // 0正常 1锁定
+	where2["type"] = "1"   // 钱包类型：1现货 2合约
+	where2["trading_pair_name"] = Currency.Name
+	var UsersWallet2 response.UsersWallet
+	DB.Model(models.UsersWallet{}).Where(where2).Find(&UsersWallet2)
+	// 交易对钱包信息不存在，或者可用余额不足
+	if UsersWallet2.Available <= 0 || UsersWallet2.Id <= 0 {
+		log := fmt.Sprintf("UsersWallet2.Available（%v） <= 0 || UsersWallet2.Id（%v） <= 0", UsersWallet2.Available, UsersWallet2.Id)
+		logger.Info(UsersWallet2)
+		logger.Error(errors.New(log))
+		DB.Rollback()
+		echo.Error(c, "InsufficientBalance", "")
+		return
+	}
+
 	// 限价百分比算法：（当前可用余额*百分比）/当前限价=买入货币
 
 	// 挂单类型：1-限价 2-市价 类型计算
@@ -124,6 +142,8 @@ func (h *CurrencyCurrencyController) TransactionHandler(c *gin.Context) {
 	}
 
 	var buyNum float64
+	var WalletStreamUsersWallet response.UsersWallet
+	UpdateUsersWallet := cmap.New().Items()
 	// 订单方向：1-买入
 	if params.TransactionType == "1" {
 		// todo::当前限价(限价的时候手输入，市价的时候，传入k线图的最高价，后期后台自动去火币网获取)
@@ -144,6 +164,17 @@ func (h *CurrencyCurrencyController) TransactionHandler(c *gin.Context) {
 		}
 		addData.Price = fmt.Sprintf("%.8f", buyNum)
 		// 挂单类型：1-限价 2-市价 类型计算
+		// 可用余额减去消费货币
+		UpdateUsersWallet["available"] = UsersWallet.Available - buyNum
+		WalletStreamUsersWallet = UsersWallet
+		// 订单方向：1-买入 // 修改钱包余额 （交易扣减）
+		editError := DB.Model(models.UsersWallet{}).Where(where).Updates(UpdateUsersWallet).Error
+		if editError != nil {
+			logger.Info("修改钱包余额失败")
+			logger.Info(editError.Error())
+			DB.Rollback()
+			return
+		}
 	}
 
 	// 订单方向：2-卖出
@@ -161,6 +192,17 @@ func (h *CurrencyCurrencyController) TransactionHandler(c *gin.Context) {
 		buyNum = LimitPrice * Percentage
 		addData.Price = fmt.Sprintf("%.8f", buyNum)
 		// 挂单类型：1-限价 2-市价 类型计算
+		// 可用余额减去卖出货币
+		UpdateUsersWallet["available"] = UsersWallet2.Available - Percentage
+		WalletStreamUsersWallet = UsersWallet2
+		// 订单方向：2-卖出 // 修改钱包余额 （交易扣减）
+		editError := DB.Model(models.UsersWallet{}).Where(where2).Updates(UpdateUsersWallet).Error
+		if editError != nil {
+			logger.Info("修改钱包余额失败")
+			logger.Info(editError.Error())
+			DB.Rollback()
+			return
+		}
 	}
 	if len(addData.Price) <= 0 {
 		logger.Error(errors.New("买入价格计算错误"))
@@ -181,7 +223,7 @@ func (h *CurrencyCurrencyController) TransactionHandler(c *gin.Context) {
 		return
 	}
 
-	// 记录资产流水
+	// 记录资产流水 todo 暂未用到后面可能砍掉
 	AssetsStream := new(models.AssetsStream).SetAddData(1, addData, Currency)
 	cErr = DB.Model(AssetsStream).Create(&AssetsStream).Error
 	if cErr != nil {
@@ -190,23 +232,11 @@ func (h *CurrencyCurrencyController) TransactionHandler(c *gin.Context) {
 		return
 	}
 
-	// 修改钱包余额 （交易扣减）
-	UpdateUsersWallet := cmap.New().Items()
-	UpdateUsersWallet["available"] = UsersWallet.Available - buyNum
-	editError := DB.Model(models.UsersWallet{}).Where(where).Updates(UpdateUsersWallet).Error
-	if editError != nil {
-		logger.Info("修改钱包余额失败")
-		logger.Info(editError.Error())
-		DB.Rollback()
-		return
-	}
-	// 修改钱包余额
-
 	// 记录钱包流水
 	// Way 流转方式 1 收入 2 支出
 	// Type 流转类型 1 币币交易 2 永续合约 3 期权合约 4 申购交易 5 划转 6 充值 7 提现 8 冻结
 	// TypeDetail 流转详细类型  1 USDT充值  2 银行卡充值  3 币币交易手续费  4 永续合约手续费  5 期权合约手续费  6 币币账户划转到合约账户  7 合约账户划转到币币账户  8 申购冻结  9 币币交易  10 永续合约  11 期权合约
-	WalletStream, err4 := new(models.WalletStream).SetAddData("2", "1", "9", addData, Currency, UsersWallet)
+	WalletStream, err4 := new(models.WalletStream).SetAddData("2", "1", "9", addData, Currency, WalletStreamUsersWallet)
 	if err4 != nil {
 		DB.Rollback()
 		logger.Error(errors.New("添加数据失败" + err4.Error()))

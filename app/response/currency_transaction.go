@@ -12,7 +12,6 @@ type CurrencyTransaction struct {
 	CurrencyId      int                `json:"currency_id"`      //币种
 	TradingPairId   int                `json:"trading_pair_id"`  //交易对id
 	CurrencyName    string             `json:"currency_name"`    //币种名称 例如：BTC/USDT（币种/交易对）
-	EntrustNum      string             `json:"entrust_num"`      //委托量
 	OrderType       string             `json:"order_type"`       //挂单类型：1-限价 2-市价
 	LimitPrice      string             `json:"limit_price"`      //当前限价
 	ClinchNum       string             `json:"clinch_num"`       //成交量
