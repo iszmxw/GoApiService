@@ -70,6 +70,7 @@ func (h *CurrencyCurrencyController) TransactionHandler(c *gin.Context) {
 	addData.Email = userInfo.(map[string]interface{})["email"].(string)
 	CurrencyId, err := strconv.Atoi(params.CurrencyId)
 	if err != nil {
+		logger.Error(errors.New("传输的币种id转义失败"))
 		echo.Error(c, "ValidatorError", err.Error())
 		return
 	}
@@ -91,6 +92,7 @@ func (h *CurrencyCurrencyController) TransactionHandler(c *gin.Context) {
 		Joins(models.Prefix("left join $_trading_pair on $_trading_pair.id=$_currency.trading_pair_id")).
 		Find(&Currency)
 	if Currency.Id <= 0 {
+		logger.Error(errors.New("币种不存在"))
 		echo.Error(c, "CurrencyIsExist", "")
 		return
 	}
@@ -99,13 +101,16 @@ func (h *CurrencyCurrencyController) TransactionHandler(c *gin.Context) {
 	// 查询用户钱包信息
 	where := cmap.New().Items()
 	where["user_id"] = userId
+	where["status"] = "0" // 0正常 1锁定
+	where["type"] = "1"   // 钱包类型：1现货 2合约
 	where["trading_pair_id"] = Currency.TradingPairId
 	var UsersWallet response.UsersWallet
 	DB.Model(models.UsersWallet{}).Where(where).Find(&UsersWallet)
 	// 用户可用余额不足
 	if UsersWallet.Available <= 0 || UsersWallet.Id <= 0 {
 		log := fmt.Sprintf("%v <= 0 || %v <= 0", UsersWallet.Available, UsersWallet.Id)
-		fmt.Println(log)
+		logger.Info(UsersWallet)
+		logger.Error(errors.New(log))
 		DB.Rollback()
 		echo.Error(c, "InsufficientBalance", "")
 		return
@@ -130,7 +135,7 @@ func (h *CurrencyCurrencyController) TransactionHandler(c *gin.Context) {
 			return
 		}
 		// 买入消费货币=市价（限价）*卖出数量
-		fmt.Printf("市价/限价: %v * 卖出数量: %v \n", LimitPrice, Percentage)
+		logger.Info(fmt.Sprintf("市价/限价: %v * 卖出数量: %v \n", LimitPrice, Percentage))
 		buyNum = LimitPrice * Percentage
 		// 消费的金额不能大于钱包余额
 		if buyNum > UsersWallet.Available {
@@ -190,7 +195,8 @@ func (h *CurrencyCurrencyController) TransactionHandler(c *gin.Context) {
 	UpdateUsersWallet["available"] = UsersWallet.Available - buyNum
 	editError := DB.Model(models.UsersWallet{}).Where(where).Updates(UpdateUsersWallet).Error
 	if editError != nil {
-		fmt.Println("修改钱包余额失败", editError.Error())
+		logger.Info("修改钱包余额失败")
+		logger.Info(editError.Error())
 		DB.Rollback()
 		return
 	}
@@ -203,12 +209,14 @@ func (h *CurrencyCurrencyController) TransactionHandler(c *gin.Context) {
 	WalletStream, err4 := new(models.WalletStream).SetAddData("2", "1", "9", addData, Currency, UsersWallet)
 	if err4 != nil {
 		DB.Rollback()
+		logger.Error(errors.New("添加数据失败" + err4.Error()))
 		echo.Error(c, "AddError", err4.Error())
 		return
 	}
 	cErr = DB.Model(WalletStream).Create(&WalletStream).Error
 	if cErr != nil {
 		DB.Rollback()
+		logger.Error(errors.New("添加数据失败" + cErr.Error()))
 		echo.Error(c, "AddError", cErr.Error())
 		return
 	}

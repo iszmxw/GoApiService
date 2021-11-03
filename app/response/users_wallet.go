@@ -7,6 +7,7 @@ import (
 type UsersWallet struct {
 	Id              uint               `json:"id"`                //主键id
 	UserId          int                `json:"user_id"`           //用户id
+	Type            int                `json:"type"`              //钱包类型：1现货 2合约
 	TradingPairId   int                `json:"trading_pair_id"`   //交易对id
 	TradingPairName string             `json:"trading_pair_name"` //交易对名称
 	Address         string             `json:"address"`           //钱包地址
