@@ -76,6 +76,14 @@ func Get(key string) (string, error) {
 	return value, err
 }
 
+// Redis Keys 命令 - 查找所有符合给定模式( pattern)的 key
+// https://www.redis.net.cn/order/3535.html
+
+func Keys(key string) ([]string, error) {
+	value, err := Redis.Keys(key).Result()
+	return value, err
+}
+
 func SubExpireEvent(channels string) *redis.PubSub {
 	// 订阅key过期事件
 	//sub := Redis.Subscribe("__keyevent@0__:expired")

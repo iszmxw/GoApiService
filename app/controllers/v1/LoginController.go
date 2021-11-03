@@ -68,11 +68,17 @@ func (h *LoginController) LoginHandler(c *gin.Context) {
 		return
 	}
 	token := helpers.GetUUID()
-	fmt.Println(string(info))                         //byte[]转换成string 输出
+	loginKey := "login:user:" + helpers.IntToString(user.Id)
+	oldToken, _ := redis.Get(loginKey)
+	if len(oldToken) > 0 {
+		redis.Delete(oldToken)
+	}
 	_, err := redis.Add(token, string(info), 60*60*2) // 缓存两个小时过期
-	if err != nil {
+	_, err1 := redis.Add(loginKey, token, 60*60*2)    // 缓存两个小时过期
+	if err != nil || err1 != nil {
 		logger.Info("服务异常，登录失败！")
 		logger.Error(err)
+		logger.Error(err1)
 		echo.Error(c, "LoginFailed", "")
 		return
 	}
