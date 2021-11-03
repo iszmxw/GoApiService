@@ -31,9 +31,8 @@ type LoginController struct {
 // @Tags 登录接口
 // @Accept multipart/form-data
 // @Produce application/json
-// @Param object formData requests.UserLogin false "查询参数"
-// @Security ApiKeyAuth
-// @Success 200 {} echo.Success
+// @Param param formData requests.UserLogin false "请求参数"
+// @Success 200 {object} response._LoginHandler
 // @Router /v1/api/user/login [post]
 func (h *LoginController) LoginHandler(c *gin.Context) {
 	// 初始化数据模型结构体
@@ -86,6 +85,14 @@ func (h *LoginController) LoginHandler(c *gin.Context) {
 }
 
 // SendEmailRegisterHandler 发送注册邮件
+// @Summary 发送注册邮件
+// @Tags 发送注册邮件
+// @Description 发送注册邮件
+// @Accept multipart/form-data
+// @Produce application/json
+// @Param param formData requests.UserEmail false "请求参数"
+// @Success 200 {object} response._OK
+// @Router /v1/api/user/send_email_register [post]
 func (h *LoginController) SendEmailRegisterHandler(c *gin.Context) {
 	// 初始化数据模型结构体
 	var params requests.UserEmail
@@ -171,7 +178,7 @@ func (h *LoginController) VerifyRegisterHandler(c *gin.Context) {
 	timeNow := time.Now()
 	user := models.User{}
 	user.Language = "1" // 默认繁体
-	user.IsAgent = "0"
+	user.IsAgent = "0"  // 默认为零，暂时不是代理
 	user.Email = params.Email
 	user.Nickname = params.Email
 	user.UserLevel = 1 // 默认为1
@@ -179,8 +186,8 @@ func (h *LoginController) VerifyRegisterHandler(c *gin.Context) {
 	user.PayPassword = helpers.Md5(params.PayPassword)
 	user.LoginTime = timeNow
 	user.LastLoginIp = c.ClientIP()
-	user.Status = "0"        // 正常
-	user.AgentDividend = "0" // 默认为零，暂时不是代理
+	user.Status = "0" // 正常
+	user.AgentDividend = "0"
 
 	// 开始事务
 	DB := mysql.DB.Debug().Begin()
@@ -248,21 +255,25 @@ func (h *LoginController) VerifyRegisterHandler(c *gin.Context) {
 	// 初始化钱包数据
 	var UsersWalletArr []models.UsersWallet
 	var UsersWallet models.UsersWallet
+	Type := map[int]int{1: 1, 2: 2}
 	if len(TradingPair) <= 0 {
 		DB.Rollback()
 		echo.Error(c, "SysTradingPairIsExist", "")
 		return
 	}
 	for _, value := range TradingPair {
-		UsersWallet.UserId = user.Id
-		UsersWallet.TradingPairId = value.Id     // 有多少种交易对就有多少种钱包
-		UsersWallet.TradingPairName = value.Name // 交易对名称
-		UsersWallet.Address = helpers.GetUUID()
-		UsersWallet.Status = 0      // 0正常 1锁定
-		UsersWallet.Available = 0   // 可用
-		UsersWallet.Freeze = 0      // 冻结
-		UsersWallet.TotalAssets = 0 // 总资产
-		UsersWalletArr = append(UsersWalletArr, UsersWallet)
+		for _, v := range Type {
+			UsersWallet.UserId = user.Id
+			UsersWallet.Type = v                     // 钱包类型：1现货 2合约
+			UsersWallet.TradingPairId = value.Id     // 有多少种交易对就有多少种钱包
+			UsersWallet.TradingPairName = value.Name // 交易对名称
+			UsersWallet.Address = helpers.GetUUID()
+			UsersWallet.Status = 0      // 0正常 1锁定
+			UsersWallet.Available = 0   // 可用
+			UsersWallet.Freeze = 0      // 冻结
+			UsersWallet.TotalAssets = 0 // 总资产
+			UsersWalletArr = append(UsersWalletArr, UsersWallet)
+		}
 	}
 	// 生成用戶钱包
 	InitUsersWallet := DB.Model(models.UsersWallet{}).Create(&UsersWalletArr).Error

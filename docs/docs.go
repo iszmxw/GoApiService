@@ -34,11 +34,6 @@ var doc = `{
     "paths": {
         "/v1/api/user/login": {
             "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
                 "description": "提交注册的邮箱和密码即可登录",
                 "consumes": [
                     "multipart/form-data"
@@ -70,9 +65,93 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": ""
+                            "$ref": "#/definitions/response._LoginHandler"
                         }
                     }
+                }
+            }
+        },
+        "/v1/api/user/send_email_register": {
+            "post": {
+                "description": "发送注册邮件",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "发送注册邮件"
+                ],
+                "summary": "发送注册邮件",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "邮箱",
+                        "name": "email",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response._OK"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "response._LoginHandler": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "msg": {
+                    "type": "string"
+                },
+                "reqId": {
+                    "type": "string"
+                },
+                "result": {
+                    "type": "object",
+                    "properties": {
+                        "token": {
+                            "description": "登录获取的token",
+                            "type": "string"
+                        },
+                        "uid": {
+                            "description": "用户id",
+                            "type": "integer"
+                        }
+                    }
+                },
+                "success": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "response._OK": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "msg": {
+                    "type": "string"
+                },
+                "reqId": {
+                    "type": "string"
+                },
+                "result": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "boolean"
                 }
             }
         }

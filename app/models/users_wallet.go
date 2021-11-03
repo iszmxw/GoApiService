@@ -8,6 +8,7 @@ import (
 type UsersWallet struct {
 	Id              uint           // 主键id
 	UserId          int            // 用户id
+	Type            int            // 钱包类型：1现货 2合约
 	TradingPairId   int            //交易对id
 	TradingPairName string         //交易对名称
 	Address         string         // 钱包地址
