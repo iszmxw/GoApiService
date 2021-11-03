@@ -44,6 +44,8 @@ func RegisterWebRoutes(router *gin.RouterGroup) {
 		{
 			// 系统信息
 			index.Any("/system_info", v1Group.IndexController.SystemInfoHandler)
+			// banner
+			index.Any("/banner", v1Group.IndexController.BannerHandler)
 			// 币种列表
 			index.Any("/sys_currency", v1Group.IndexController.SysCurrencyHandler)
 			// 交易对列表

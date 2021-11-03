@@ -28,6 +28,7 @@ func Client() gin.HandlerFunc {
 		case "/v1/api/user/reset_verify":
 		case "/v1/api/user/reset_password":
 		case "/v1/api/index/trading_pair":
+		case "/v1/api/index/banner": // 首页轮播图
 		case "/v1/api/index/sys_currency":
 		case "/v1/api/index/system_info":
 			// 继续往下面执行

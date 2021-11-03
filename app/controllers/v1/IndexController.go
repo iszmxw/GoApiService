@@ -2,10 +2,13 @@ package v1
 
 import (
 	"github.com/gin-gonic/gin"
+	cmap "github.com/orcaman/concurrent-map"
 	"goapi/app/models"
+	"goapi/app/requests"
 	"goapi/app/response"
 	"goapi/pkg/echo"
 	"goapi/pkg/mysql"
+	"goapi/pkg/validator"
 )
 
 type IndexController struct {
@@ -26,6 +29,26 @@ func (h *IndexController) SystemInfoHandler(c *gin.Context) {
 		"kf2_address":   GlobalsTypes3.Value,
 	}
 	echo.Success(c, result, "", "")
+}
+
+// BannerHandler 轮播图
+func (h *IndexController) BannerHandler(c *gin.Context) {
+	var params requests.BannerType
+	var Banner []response.Banner
+	_ = c.Bind(&params)
+	// 数据验证
+	vErr := validator.Validate.Struct(params)
+	if vErr != nil {
+		msg := validator.Lang(c.Request.Header.Get("Language")).Translate(vErr, params, c.Request.Header.Get("Language"))
+		echo.Error(c, "ValidatorError", msg)
+		return
+	}
+	where := cmap.New().Items()
+	if len(params.Type) > 0 {
+		where["type"] = params.Type
+	}
+	mysql.DB.Model(models.Banner{}).Where(where).Find(&Banner)
+	echo.Success(c, Banner, "", "")
 }
 
 // SysCurrencyHandler 首页-币种列表
