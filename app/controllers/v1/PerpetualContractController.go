@@ -50,7 +50,6 @@ func (h *PerpetualContractController) HistoryHandler(c *gin.Context) {
 	// 绑定接收的 json 数据到结构体中
 	DB.GetPaginate(where, request.OrderBy, int64(request.Page), int64(request.Limit), &lists)
 	echo.Success(c, lists, "ok", "")
-
 }
 
 // ContractListHandler 永续合约-合约信息列表

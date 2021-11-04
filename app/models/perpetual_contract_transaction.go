@@ -59,6 +59,8 @@ func (m *PerpetualContractTransaction) GetPaginate(where map[string]interface{},
 	// order by
 	if len(orderBy.(string)) > 0 {
 		table = table.Order(orderBy)
+	} else {
+		table = table.Order("id desc")
 	}
 	table = table.Offset(int(lists.Offset))
 	table = table.Limit(int(lists.PageSize))
