@@ -17,7 +17,7 @@ import (
 func Client() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// 设置语言，默认英文
-		SetLang(c, "en")
+		SetLang(c, "zh")
 		logger.WithContext(c).Info("请求信息", zap.Skip())
 		path := c.FullPath()
 		switch path {

@@ -26,7 +26,6 @@ type PerpetualContractTransaction struct {
 	EntrustPrice    string             `json:"entrust_price"`     //委托价格
 	EnsureAmount    string             `json:"ensure_amount"`     //保证金
 	HandleFee       string             `json:"handle_fee"`        //手续费，单位百分比
-	HandNum         string             `json:"hand_num"`          //手数值
 	Multiple        string             `json:"multiple"`          //倍数值
 	Price           string             `json:"price"`             //交易金额
 	Income          float64            `json:"income"`            //最终收益

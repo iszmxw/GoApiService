@@ -33,4 +33,8 @@ type ErrorCode struct {
 	FeeOptionContractIsError string `code:"10027" msg:"期權交易合約手續費未設置，請里聯系運營配置"`
 	WithdrawalFeesIsError    string `code:"10027" msg:"提現手續費異常"`
 	LoginFailed              string `code:"10028" msg:"服務異常，登錄失敗！"`
+	// todo
+	MultipleIsError      string `code:"10029" msg:"倍数值不合法，不是系统设定的值！"`
+	ContractIsNotCorrect string `code:"10030" msg:"合约信息未正确设置，请联系管理员设置该交易对相应的合约信息"`
+	UsersWalletLock      string `code:"10031" msg:"对不起您的钱包暂时已锁定"`
 }

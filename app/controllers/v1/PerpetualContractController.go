@@ -14,6 +14,7 @@ import (
 	"goapi/pkg/mysql"
 	"goapi/pkg/validator"
 	"strconv"
+	"strings"
 )
 
 type PerpetualContractController struct {
@@ -69,10 +70,6 @@ func (h *PerpetualContractController) ContractListHandler(c *gin.Context) {
 	}
 	where := cmap.New().Items()
 	where["currency_id"] = params.CurrencyId
-	where["status"] = 1
-	if params.Type > 0 {
-		where["type"] = params.Type
-	}
 	// 查询启用状态的合约
 	mysql.DB.Debug().Model(models.PerpetualContract{}).Where(where).Find(&list)
 	if len(list) <= 0 {
@@ -85,6 +82,7 @@ func (h *PerpetualContractController) ContractListHandler(c *gin.Context) {
 // TradeHandler 永续合约-限价/市价
 func (h *PerpetualContractController) TradeHandler(c *gin.Context) {
 	var params requests.PerpetualContractTransaction // 绑定接收的 json 数据到结构体中
+	var PerpetualContract response.PerpetualContract // 绑定接收的 json 数据到结构体中
 	_ = c.Bind(&params)
 	// 数据验证
 	vErr := validator.Validate.Struct(params)
@@ -93,11 +91,33 @@ func (h *PerpetualContractController) TradeHandler(c *gin.Context) {
 		echo.Error(c, "ValidatorError", msg)
 		return
 	}
-	if helpers.StringToInt(params.Multiple) < 20 {
-		logger.Error(errors.New("倍数值不正确"))
-		echo.Error(c, "ValidatorError", "")
+	// 根据当前交易币种检查交易的合约信息
+	mysql.DB.Debug().Model(models.PerpetualContract{}).Where("currency_id", params.CurrencyId).Find(&PerpetualContract)
+	if PerpetualContract.Id <= 0 {
+		echo.Error(c, "ContractIsNotExist", "")
 		return
 	}
+	arrayMultiple := strings.Split(PerpetualContract.Multiple, ",") // 倍数
+	arrayBail := strings.Split(PerpetualContract.Bail, ",")         // 保证金占用比例
+	// 检查合约对应的信息是否设置正确
+	if len(arrayMultiple) != len(arrayBail) {
+		echo.Error(c, "ContractIsNotCorrect", "")
+		return
+	}
+	var Bail string
+	// 通过倍数值获取相对应的保证金占比值
+	for key, val := range arrayMultiple {
+		if params.Multiple == val {
+			Bail = arrayBail[key]
+		}
+	}
+	// 该函数会打乱数组原有的顺序
+	if !helpers.InArray(params.Multiple, arrayMultiple) {
+		echo.Error(c, "MultipleIsError", "")
+		return
+	}
+	logger.Info(fmt.Sprintf("获取保证金占用比例Bail:%v", Bail))
+	// 根据当前交易币种查询交易的合约信息
 	userInfo, _ := c.Get("user")
 	userId, _ := c.Get("user_id")
 	var addData models.PerpetualContractTransaction
@@ -120,34 +140,14 @@ func (h *PerpetualContractController) TradeHandler(c *gin.Context) {
 	LimitPrice, err2 := strconv.ParseFloat(params.LimitPrice, 64)
 	// 委托量，委托（20%，50%，75%，100%）
 	EntrustNum, err1 := strconv.ParseFloat(params.EntrustNum, 64)
-	if err1 != nil || err2 != nil {
+	Bails, err3 := strconv.ParseFloat(Bail, 64)
+	if err1 != nil || err2 != nil || err3 != nil {
 		echo.Error(c, "Percentage", "")
 		return
 	}
-	switch params.Multiple {
-	case "20":
-		// 1：100
-		EnsureAmount = EntrustNum * LimitPrice
-		break
-	case "50":
-		// 50X=1：50
-		EnsureAmount = EntrustNum * LimitPrice * 0.5
-		break
-	case "100":
-		//	100x=1：25
-		EnsureAmount = EntrustNum * LimitPrice * 0.25
-		break
-	case "200":
-		//  200X=1：5
-		EnsureAmount = EntrustNum * LimitPrice * 0.05
-		break
-	default:
-		logger.Error(errors.New("倍数不正确"))
-		echo.Error(c, "ValidatorError", "")
-		return
-	}
+	EnsureAmount = EntrustNum * LimitPrice * Bails
+	logger.Info(fmt.Sprintf("最终保证金：%v", EnsureAmount))
 	addData.EnsureAmount = fmt.Sprintf("%.8f", EnsureAmount) // 保证金
-	addData.HandNum = params.HandNum                         // 手数值
 	addData.Multiple = params.Multiple                       // 倍数值
 	addData.OrderType = params.OrderType                     // 订单类型：1-限价 2-市价
 	addData.TransactionType = params.TransactionType         // 交易类型：1-开多 2-开空
@@ -168,7 +168,7 @@ func (h *PerpetualContractController) TradeHandler(c *gin.Context) {
 	// 查询交易币种信息
 	var Currency response.Currency
 	DB.Model(models.Currency{}).
-		Where(map[string]interface{}{models.Prefix("$_currency.id"): params.CurrencyId}).
+		Where(models.Prefix("$_currency.id"), params.CurrencyId).
 		Select(models.Prefix("$_currency.*,$_trading_pair.name as trading_pair_name")).
 		Joins(models.Prefix("left join $_trading_pair on $_trading_pair.id=$_currency.trading_pair_id")).
 		Find(&Currency)
@@ -184,19 +184,23 @@ func (h *PerpetualContractController) TradeHandler(c *gin.Context) {
 	// 查询用户钱包信息
 	where := cmap.New().Items()
 	where["user_id"] = userId
+	where["type"] = "2" // 钱包类型：1现货 2合约
 	where["trading_pair_id"] = Currency.TradingPairId
 	var UsersWallet response.UsersWallet
 	DB.Model(models.UsersWallet{}).Where(where).Find(&UsersWallet)
 	// 用户可用余额不足
 	Price, _ := strconv.ParseFloat(addData.Price, 64)
+	if UsersWallet.Status == 1 { // 0正常 1锁定
+		DB.Rollback()
+		echo.Error(c, "UsersWalletLock", "")
+		return
+	}
 	if UsersWallet.Available <= 0 || UsersWallet.Id <= 0 || UsersWallet.Available < Price {
-		log := fmt.Sprintf("%v <= 0 || %v <= 0", UsersWallet.Available, UsersWallet.Id)
-		fmt.Println(log)
+		logger.Info(fmt.Sprintf("UsersWallet.Available: %v <= 0 || UsersWallet.Id: %v <= 0", UsersWallet.Available, UsersWallet.Id))
 		DB.Rollback()
 		echo.Error(c, "InsufficientBalance", "")
 		return
 	}
-
 	// 扣钱钱包余额
 	UsersWallet.Available = UsersWallet.Available - Price
 	vErr = DB.Model(models.UsersWallet{}).Where(where).Update("available", UsersWallet.Available).Error
@@ -221,7 +225,7 @@ func (h *PerpetualContractController) TradeHandler(c *gin.Context) {
 		return
 	}
 
-	// 记录资产流水
+	// 记录资产流水 todo::暂时用不到后面可能会砍掉
 	AssetsStream := new(models.AssetsStream).SetAddData(2, addData, Currency)
 	cErr = DB.Model(AssetsStream).Create(&AssetsStream).Error
 	if cErr != nil {

@@ -33,4 +33,6 @@ type ErrorCode1 struct {
 	FeeOptionContractIsError string `code:"10027" msg:"期权交易合约手续费未设置，请里联系运营配置"`
 	WithdrawalFeesIsError    string `code:"10027" msg:"提现手续费异常"`
 	LoginFailed              string `code:"10028" msg:"服务异常，登录失败！"`
+	// todo
+	MultipleIsError string `code:"10029" msg:"倍数值不合法，不是系统设定的值！"`
 }
