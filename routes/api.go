@@ -111,7 +111,7 @@ func RegisterWebRoutes(router *gin.RouterGroup) {
 			perpetualContract.Any("/history", v1Group.PerpetualContractController.HistoryHandler)
 			// 限价/市价
 			perpetualContract.Any("/trade", v1Group.PerpetualContractController.TradeHandler)
-			// 撤单
+			// todo::撤单 暂时无用
 			perpetualContract.Any("/cancel_order", v1Group.PerpetualContractController.CancelOrderHandler)
 			// 平仓
 			perpetualContract.Any("/liquidation", v1Group.PerpetualContractController.LiquidationHandler)

@@ -34,7 +34,11 @@ type ErrorCode struct {
 	WithdrawalFeesIsError    string `code:"10027" msg:"提現手續費異常"`
 	LoginFailed              string `code:"10028" msg:"服務異常，登錄失敗！"`
 	// todo
-	MultipleIsError      string `code:"10029" msg:"倍数值不合法，不是系统设定的值！"`
-	ContractIsNotCorrect string `code:"10030" msg:"合约信息未正确设置，请联系管理员设置该交易对相应的合约信息"`
-	UsersWalletLock      string `code:"10031" msg:"对不起您的钱包暂时已锁定"`
+	MultipleIsError                 string `code:"10029" msg:"倍数值不合法，不是系统设定的值！"`
+	ContractIsNotCorrect            string `code:"10030" msg:"合约信息未正确设置，请联系管理员设置该交易对相应的合约信息"`
+	UsersWalletLock                 string `code:"10031" msg:"对不起您的钱包暂时已锁定"`
+	LiquidationUnsuccessful         string `code:"10032" msg:"平仓失败"`
+	OptionContractSecondsNotCorrect string `code:"10033" msg:"期权合约秒数不正确"`
+	OptionContractStatus            string `code:"10034" msg:"该期权合约暂未启用！"`
+	FeePerpetualContractIsError     string `code:"10035" msg:"永续合约手续费未设置，请联系运营配置！"`
 }

@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	cmap "github.com/orcaman/concurrent-map"
@@ -9,6 +10,7 @@ import (
 	"goapi/app/response"
 	"goapi/pkg/echo"
 	"goapi/pkg/helpers"
+	"goapi/pkg/logger"
 	"goapi/pkg/mysql"
 	"goapi/pkg/redis"
 	"goapi/pkg/validator"
@@ -62,7 +64,7 @@ func (h *OptionContractController) LogHandler(c *gin.Context) {
 	}
 	// 绑定接收的 json 数据到结构体中
 	DB.GetPaginate(where, request.OrderBy, int64(request.Page), int64(request.Limit), &lists)
-	fmt.Println(fmt.Sprintf("%T", lists.Data))
+	logger.Info(fmt.Sprintf("%T", lists.Data))
 	arr := lists.Data.([]response.OptionContractTransaction)
 	for i := 0; i < len(arr); i++ {
 		arr[i].Time = arr[i].Seconds
@@ -87,8 +89,11 @@ func (h *OptionContractController) LogHandler(c *gin.Context) {
 
 // TradeHandler 期权合约-买张、买跌、自输入
 func (h *OptionContractController) TradeHandler(c *gin.Context) {
-	var request requests.OptionContractTransaction
-	var addData models.OptionContractTransaction
+	var (
+		request        requests.OptionContractTransaction
+		OptionContract response.OptionContract
+		addData        models.OptionContractTransaction
+	)
 	_ = c.Bind(&request)
 	// 数据验证
 	vErr := validator.Validate.Struct(request)
@@ -117,10 +122,32 @@ func (h *OptionContractController) TradeHandler(c *gin.Context) {
 	addData.BuyPrice = request.BuyPrice                 // 购买价格
 	// 开启数据库
 	DB := mysql.DB.Debug().Begin()
+	// 查询交易的合约信息
+	DB.Model(models.OptionContract{}).Where("id", request.OptionContractId).Find(&OptionContract)
+	if OptionContract.Id <= 0 {
+		echo.Error(c, "ContractIsNotExist", "")
+		return
+	}
+	// 期权合约秒数不正确
+	if request.Seconds != OptionContract.Seconds {
+		echo.Error(c, "OptionContractSecondsNotCorrect", "")
+		return
+	}
+	// 期权合约收益率不正确
+	if request.ProfitRatio != OptionContract.ProfitRatio {
+		echo.Error(c, "OptionContractProfitRatioNotCorrect", "")
+		return
+	}
+	// 状态:0.禁用,1.启用
+	if OptionContract.Status != 1 {
+		echo.Error(c, "OptionContractStatus", "")
+		return
+	}
+	// 查询交易的合约信息
 	// 查询交易币种信息
 	var Currency response.Currency
 	DB.Model(models.Currency{}).
-		Where(map[string]interface{}{models.Prefix("$_currency.id"): request.CurrencyId}).
+		Where(models.Prefix("$_currency.id"), request.CurrencyId).
 		Select(models.Prefix("$_currency.*,$_trading_pair.name as trading_pair_name")).
 		Joins(models.Prefix("left join $_trading_pair on $_trading_pair.id=$_currency.trading_pair_id")).
 		Find(&Currency)
@@ -130,7 +157,7 @@ func (h *OptionContractController) TradeHandler(c *gin.Context) {
 	}
 	// 期权合约交易手续费小于零
 	if helpers.StringToInt(Currency.FeeOptionContract) < 0 {
-		fmt.Println("期权合约交易手续费小于零：", Currency.FeeOptionContract)
+		logger.Error(errors.New(fmt.Sprintf("期权合约交易手续费小于零: %v", Currency.FeeOptionContract)))
 		echo.Error(c, "FeeOptionContractIsError", "")
 		return
 	}
@@ -141,20 +168,20 @@ func (h *OptionContractController) TradeHandler(c *gin.Context) {
 	// 查询用户钱包信息
 	where := cmap.New().Items()
 	where["user_id"] = userId
+	where["type"] = "2" // 钱包类型：1现货 2合约
 	where["trading_pair_id"] = Currency.TradingPairId
 	var UsersWallet response.UsersWallet
 	DB.Model(models.UsersWallet{}).Where(where).Find(&UsersWallet)
 	Price, err2 := strconv.ParseFloat(request.Price, 64)
 	if err2 != nil {
-		fmt.Println("金额转换为float64失败", request.Price)
+		logger.Error(errors.New(fmt.Sprintf("金额转换为float64失败: %v", request.Price)))
 		DB.Rollback()
 		echo.Error(c, "AddError", err2.Error())
 		return
 	}
 	// 用户可用余额不足
 	if UsersWallet.Id <= 0 || UsersWallet.Available <= 0 || UsersWallet.Available < Price {
-		log := fmt.Sprintf("%v <= 0 || %v <= 0", UsersWallet.Available, UsersWallet.Id)
-		fmt.Println(log)
+		logger.Error(errors.New(fmt.Sprintf("UsersWallet.Available: %v <= 0 || UsersWallet.Id: %v <= 0", UsersWallet.Available, UsersWallet.Id)))
 		DB.Rollback()
 		echo.Error(c, "InsufficientBalance", "")
 		return
@@ -172,7 +199,7 @@ func (h *OptionContractController) TradeHandler(c *gin.Context) {
 		return
 	}
 
-	// 记录资产流水
+	// 记录资产流水 todo::暂时没有用到后面可能砍掉
 	AssetsStream := new(models.AssetsStream).SetAddData(3, addData, Currency)
 	cErr = DB.Model(AssetsStream).Create(&AssetsStream).Error
 	if cErr != nil {
@@ -186,7 +213,7 @@ func (h *OptionContractController) TradeHandler(c *gin.Context) {
 	UpdateUsersWallet["available"] = UsersWallet.Available - Price
 	editError := DB.Model(models.UsersWallet{}).Where(where).Updates(UpdateUsersWallet).Error
 	if editError != nil {
-		fmt.Println("修改钱包余额失败", editError.Error())
+		logger.Error(errors.New(fmt.Sprintf("修改钱包余额失败，%v", editError.Error())))
 		DB.Rollback()
 		return
 	}
@@ -211,6 +238,7 @@ func (h *OptionContractController) TradeHandler(c *gin.Context) {
 	ID := helpers.IntToString(addData.Id)
 	_, rErr := redis.Add("option_contract:order:"+ID, "期权合约秒交易订单处理", request.Seconds)
 	if rErr != nil {
+		logger.Error(errors.New("期权合约Redis缓存失败：" + rErr.Error()))
 		DB.Rollback()
 		echo.Error(c, "AddError", rErr.Error())
 		return

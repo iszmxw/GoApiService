@@ -81,7 +81,7 @@ func (h *PerpetualContractController) ContractListHandler(c *gin.Context) {
 // TradeHandler 永续合约-限价/市价
 func (h *PerpetualContractController) TradeHandler(c *gin.Context) {
 	var params requests.PerpetualContractTransaction // 绑定接收的 json 数据到结构体中
-	var PerpetualContract response.PerpetualContract // 绑定接收的 json 数据到结构体中
+	var PerpetualContract response.PerpetualContract
 	_ = c.Bind(&params)
 	// 数据验证
 	vErr := validator.Validate.Struct(params)
@@ -173,6 +173,12 @@ func (h *PerpetualContractController) TradeHandler(c *gin.Context) {
 		Find(&Currency)
 	if Currency.Id <= 0 {
 		echo.Error(c, "CurrencyIsExist", "")
+		return
+	}
+	// 期权合约交易手续费小于零
+	if helpers.StringToInt(Currency.FeePerpetualContract) < 0 {
+		logger.Error(errors.New(fmt.Sprintf("永续合约交易手续费小于零: %v", Currency.FeePerpetualContract)))
+		echo.Error(c, "FeePerpetualContractIsError", "")
 		return
 	}
 	addData.CurrencyName = Currency.Name + "/" + Currency.TradingPairName // 币种名称 例如：BTC/USDT（币种/交易对）
@@ -289,6 +295,7 @@ func (h *PerpetualContractController) LiquidationHandler(c *gin.Context) {
 		return
 	}
 	userInfo, _ := c.Get("user")
+	userId, _ := c.Get("user_id")
 	var PerpetualContractTransaction response.PerpetualContractTransaction
 	where := cmap.New().Items()
 	where["email"] = userInfo.(map[string]interface{})["email"]
@@ -312,9 +319,8 @@ func (h *PerpetualContractController) LiquidationHandler(c *gin.Context) {
 	var UsersWallet response.UsersWallet
 	DB.Model(models.UsersWallet{}).Where(whereWallet).Find(&UsersWallet)
 	// 用户可用余额不足
-	if UsersWallet.Available <= 0 || UsersWallet.Id <= 0 {
-		log := fmt.Sprintf("%v <= 0 || %v <= 0", UsersWallet.Available, UsersWallet.Id)
-		fmt.Println(log)
+	if UsersWallet.Available < 0 || UsersWallet.Id <= 0 {
+		logger.Error(errors.New(fmt.Sprintf("UsersWallet.Available: %v < 0 || UsersWallet.Id: %v <= 0", UsersWallet.Available, UsersWallet.Id)))
 		DB.Rollback()
 		echo.Error(c, "InsufficientBalance", "")
 		return
@@ -351,7 +357,9 @@ func (h *PerpetualContractController) LiquidationHandler(c *gin.Context) {
 	//Updates["clinch_price"] = clinchPrice // 成交价格
 	err2 := DB.Model(models.PerpetualContractTransaction{}).Where(where).Updates(Updates).Error
 	if err2 != nil {
-		fmt.Println("平仓失败", err2.Error())
+		logger.Error(errors.New("平仓失败"))
+		logger.Error(err2)
+		echo.Error(c, "LiquidationUnsuccessful", "")
 		return
 	}
 
@@ -359,13 +367,14 @@ func (h *PerpetualContractController) LiquidationHandler(c *gin.Context) {
 	UpdateUsersWallet := cmap.New().Items()
 	UpdateUsersWallet["available"] = UsersWallet.Available + income // 返回保证金
 	editError := DB.Model(models.UsersWallet{}).
-		Where(map[string]interface{}{
-			"user_id":         userInfo.(map[string]interface{})["id"],
-			"trading_pair_id": PerpetualContractTransaction.TradingPairId}).
+		Where("user_id", userId).
+		Where("type", "1"). // 钱包类型：1现货 2合约
+		Where("trading_pair_id", PerpetualContractTransaction.TradingPairId).
 		Updates(UpdateUsersWallet).Error
 	if editError != nil {
-		fmt.Println("修改钱包余额失败", editError.Error())
+		logger.Error(errors.New(fmt.Sprintf("修改钱包余额失败，%v", editError.Error())))
 		DB.Rollback()
+		echo.Error(c, "LiquidationUnsuccessful", "")
 		return
 	}
 	// 修改钱包余额
@@ -384,12 +393,12 @@ func (h *PerpetualContractController) LiquidationHandler(c *gin.Context) {
 	data.AmountAfter = income + UsersWallet.Available                   // 流转后的余额
 	cErr := DB.Model(models.WalletStream{}).Create(&data).Error
 	if cErr != nil {
-		fmt.Println("创建钱包流水失败", cErr.Error())
+		logger.Error(errors.New(fmt.Sprintf("创建钱包流水失败，%v", cErr.Error())))
 		DB.Rollback()
+		echo.Error(c, "LiquidationUnsuccessful", "")
 		return
 	}
 	// 创建钱包流水
-
 	DB.Commit()
 	echo.Success(c, "", "", "")
 }

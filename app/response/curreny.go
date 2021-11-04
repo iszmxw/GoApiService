@@ -14,8 +14,6 @@ type Currency struct {
 	Type                 string             `json:"type"`                   // 交易显示：（1币币交易，2永续合约，3期权合约）
 	Sort                 int8               `json:"sort"`                   // 排序
 	IsHidden             int8               `json:"is_hidden"`              // 是否展示：0-否，1-展示
-	FluctuationMin       float64            `json:"fluctuation_min"`        // 行情波动值（小）
-	FluctuationMax       float64            `json:"fluctuation_max"`        // 行情波动值（大）
 	FeePerpetualContract string             `json:"fee_perpetual_contract"` // 永续合约手续费%
 	FeeOptionContract    string             `json:"fee_option_contract"`    // 期权合约手续费%
 	CreatedAt            helpers.TimeNormal `json:"created_at"`             // 创建时间

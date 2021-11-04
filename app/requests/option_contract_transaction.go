@@ -9,11 +9,11 @@ type ListOptionContractTransaction struct {
 }
 
 type OptionContractTransaction struct {
-	OptionContractId int     `json:"option_contract_id" form:"option_contract_id" validate:"required"` //期权合约id
-	Seconds          int     `json:"seconds" form:"seconds" validate:"required"`                       //秒数
-	ProfitRatio      float64 `json:"profit_ratio" form:"profit_ratio" validate:"required"`             //收益率
-	Price            string  `json:"price" form:"price" validate:"required"`                           //交易金额
-	BuyPrice         string  `json:"buy_price" form:"buy_price" validate:"required"`                   //购买价格
+	OptionContractId int     `json:"option_contract_id" form:"option_contract_id" validate:"required"` // 期权合约id
+	Seconds          int     `json:"seconds" form:"seconds" validate:"required"`                       // 秒数
+	ProfitRatio      float64 `json:"profit_ratio" form:"profit_ratio" validate:"required"`             // 收益率
+	Price            string  `json:"price" form:"price" validate:"required"`                           // 交易金额
+	BuyPrice         string  `json:"buy_price" form:"buy_price" validate:"required"`                   // 购买价格
 	CurrencyId       string  `json:"currency_id" form:"currency_id" validate:"required"`               // 购买币种
 	OrderType        string  `json:"order_type" form:"order_type" validate:"required"`                 // 订单类型：1-买涨 2-买跌
 	//ClinchPrice string `json:"clinch_price" form:"clinch_price"` //成交价格
