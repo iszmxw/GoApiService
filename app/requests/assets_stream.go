@@ -2,6 +2,7 @@ package requests
 
 // TradingPair 交易对id
 type TradingPair struct {
+	Type          string `json:"type" form:"type" validate:"required,numeric"`                       // 1现货 2合约
 	TradingPairId string `json:"trading_pair_id" form:"trading_pair_id" validate:"required,numeric"` //提现的交易对id
 }
 

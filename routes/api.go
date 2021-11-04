@@ -69,7 +69,7 @@ func RegisterWebRoutes(router *gin.RouterGroup) {
 		Trade := ApiRoute.Group("/trade")
 		{
 			// 获取类型
-			Trade.Any("/sys_type", v1Group.TradeController.SsyTypeHandler)
+			Trade.Any("/sys_type", v1Group.TradeController.SysTypeHandler)
 			// 充值
 			Trade.Any("/recharge", v1Group.TradeController.ReChargeHandler)
 			// 充值记录

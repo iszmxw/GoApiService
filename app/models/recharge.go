@@ -17,6 +17,7 @@ type Recharge struct {
 	Type            string             `json:"type"`              //类型：1-OMNI  2-ERC20  3-TRC20
 	TradingPairId   string             `json:"trading_pair_id"`   //充值的交易对id
 	TradingPairName string             `json:"trading_pair_name"` //充值的交易对name
+	TradingPairType string             `json:"trading_pair_type"` //充值的交易对类型 1现货 2合约
 	RechargeNum     string             `json:"recharge_num"`      //充值数量
 	Status          string             `json:"status"`            //状态：0-未确认：1-已确认
 	CreatedAt       helpers.TimeNormal `json:"created_at"`        //创建时间
@@ -47,6 +48,8 @@ func (m *Recharge) GetPaginate(where map[string]interface{}, orderBy interface{}
 	// order by
 	if len(orderBy.(string)) > 0 {
 		table = table.Order(orderBy)
+	} else {
+		table = table.Order("id desc")
 	}
 	table = table.Offset(int(lists.Offset))
 	table = table.Limit(int(lists.PageSize))

@@ -18,11 +18,31 @@ type TradeController struct {
 	BaseController
 }
 
-// SsyTypeHandler 获取类型
-func (h *TradeController) SsyTypeHandler(c *gin.Context) {
-	var data []response.GlobalsTypes
+// SysTypeHandler 获取类型
+func (h *TradeController) SysTypeHandler(c *gin.Context) {
+	var (
+		data   []response.GlobalsTypes
+		result []map[string]interface{}
+	)
 	mysql.DB.Debug().Model(models.Globals{}).Where("fields IN ?", []string{"omni_wallet_address", "erc20_wallet_address", "trc20_wallet_address"}).Find(&data)
-	echo.Success(c, data, "", "")
+	if len(data) > 0 {
+		for _, val := range data {
+			arr := cmap.New().Items()
+			switch val.Fields {
+			case "omni_wallet_address":
+				arr["OMNI"] = val.Value
+				break
+			case "erc20_wallet_address":
+				arr["ERC20"] = val.Value
+				break
+			case "trc20_wallet_address":
+				arr["TRC20"] = val.Value
+				break
+			}
+			result = append(result, arr)
+		}
+	}
+	echo.Success(c, result, "", "")
 }
 
 // ReChargeHandler 充值
@@ -49,6 +69,7 @@ func (h *TradeController) ReChargeHandler(c *gin.Context) {
 	AddData.Type = params.Type
 	AddData.TradingPairId = params.TradingPairId
 	AddData.TradingPairName = params.TradingPairName
+	AddData.TradingPairType = params.TradingPairType
 	AddData.RechargeNum = params.RechargeNum
 	AddData.Status = "0"
 	// 收集添加数据
@@ -116,6 +137,7 @@ func (h *TradeController) GetWithdrawConfigHandler(c *gin.Context) {
 	userId, _ := c.Get("user_id")
 	whereUsersWallet := cmap.New().Items()
 	whereUsersWallet["user_id"] = userId
+	whereUsersWallet["type"] = params.Type // 1现货 2合约
 	whereUsersWallet["trading_pair_id"] = params.TradingPairId
 	DB.Model(models.UsersWallet{}).Where(whereUsersWallet).Scan(&UsersWallet)
 	if UsersWallet.Id <= 0 {
