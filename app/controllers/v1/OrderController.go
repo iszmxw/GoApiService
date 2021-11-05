@@ -16,6 +16,22 @@ type OrderController struct {
 	BaseController
 }
 
+// TypeHandler 流水类型
+func (h *OrderController) TypeHandler(c *gin.Context) {
+	rdata := cmap.New().Items()
+	// 流转类型 0 未知 1 充值 2 提现 3 划转 4 快捷买币 5 空投 6 现货 7 合约 8 期权 9 手续费
+	rdata["1"] = "充值"
+	rdata["2"] = "提现"
+	rdata["3"] = "划转"
+	rdata["4"] = "快捷买币"
+	rdata["5"] = "空投"
+	rdata["6"] = "现货"
+	rdata["7"] = "合约"
+	rdata["8"] = "期权"
+	rdata["9"] = "手续费"
+	echo.Success(c, rdata, "", "")
+}
+
 // ListHandler 流水列表
 func (h *OrderController) ListHandler(c *gin.Context) {
 	var (

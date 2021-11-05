@@ -78,13 +78,13 @@ func (h *AssetsStreamController) TransferHandler(c *gin.Context) {
 	DB.Model(models.UsersWallet{}).
 		Where("user_id", userId).
 		Where("type", "1").
-		Where("trading_pair_id", params.CurrencyId).
+		Where("trading_pair_id", params.TradingPairId).
 		Find(&UsersWallet1)
 	// 查询合约账户
 	DB.Model(models.UsersWallet{}).
 		Where("user_id", userId).
 		Where("type", "2").
-		Where("trading_pair_id", params.CurrencyId).
+		Where("trading_pair_id", params.TradingPairId).
 		Find(&UsersWallet2)
 	if UsersWallet1.Id <= 0 || UsersWallet2.Id <= 0 {
 		echo.Error(c, "UsersWalletIsNotExist", "")
@@ -160,9 +160,10 @@ func (h *AssetsStreamController) TransferHandler(c *gin.Context) {
 	uErr1 := DB.Model(models.UsersWallet{}).
 		Where("user_id", userId).
 		Where("type", "1").
-		Where("trading_pair_id", params.CurrencyId).
+		Where("trading_pair_id", params.TradingPairId).
 		Update("available", AmountAfter1).Error
 	if uErr1 != nil {
+		DB.Rollback()
 		echo.Error(c, "OperationFailed", "")
 		return
 	}
@@ -170,9 +171,10 @@ func (h *AssetsStreamController) TransferHandler(c *gin.Context) {
 	uErr2 := DB.Model(models.UsersWallet{}).
 		Where("user_id", userId).
 		Where("type", "2").
-		Where("trading_pair_id", params.CurrencyId).
+		Where("trading_pair_id", params.TradingPairId).
 		Update("available", AmountAfter2).Error
 	if uErr2 != nil {
+		DB.Rollback()
 		echo.Error(c, "OperationFailed", "")
 		return
 	}
@@ -192,5 +194,6 @@ func (h *AssetsStreamController) TransferHandler(c *gin.Context) {
 		echo.Error(c, "LiquidationUnsuccessful", "")
 		return
 	}
+	DB.Commit()
 	echo.Success(c, "", "ok", "")
 }

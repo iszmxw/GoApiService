@@ -63,6 +63,8 @@ func RegisterWebRoutes(router *gin.RouterGroup) {
 			assetsStream.Any("/transfer", v1Group.AssetsStreamController.TransferHandler)
 			// 资产流水-订单时间(订单类型/全部交易对)
 			assetsStream.Any("/list", v1Group.OrderController.ListHandler)
+			// 获取类型
+			assetsStream.Any("/type", v1Group.OrderController.TypeHandler)
 		}
 
 		// 交易相关

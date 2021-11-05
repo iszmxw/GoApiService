@@ -322,12 +322,10 @@ func (h *TradeController) WithdrawLogHandler(c *gin.Context) {
 	echo.Success(c, lists, "ok", "")
 }
 
-// GetCurrencyHandler  todo:over
+// GetCurrencyHandler 获取申购币种
+
 func (h *TradeController) GetCurrencyHandler(c *gin.Context) {
-	userId, _ := c.Get("user_id")
-	where := cmap.New().Items()
-	where["id"] = userId
-	DB := mysql.DB.Debug().Begin()
+	DB := mysql.DB.Debug()
 	list := new([]response.ApplyBuySetup)
 	DB.Model(models.ApplyBuySetup{}).Find(&list)
 	echo.Success(c, list, "", "")
@@ -357,10 +355,10 @@ func (h *TradeController) SubmitApplyBuyHandler(c *gin.Context) {
 		echo.Error(c, "ApplyBuySetupIsNotExist", "")
 		return
 	}
-	ApplyBuy.GetCurrencyName = ApplyBuySetup.Name            // 申购购买币种名称
-	ApplyBuy.TradingPairId = ApplyBuySetup.TradingPairId     // 交易对id
-	ApplyBuy.TradingPairName = ApplyBuySetup.TradingPairName // 交易对名称
-	ApplyBuy.Ratio = ApplyBuySetup.Ratio                     // 购买比例
+	ApplyBuy.GetCurrencyName = ApplyBuySetup.Name  // 申购购买币种名称
+	ApplyBuy.TradingPairId = 1                     // 交易对id
+	ApplyBuy.TradingPairName = "USDT"              // 交易对名称
+	ApplyBuy.IssuePrice = ApplyBuySetup.IssuePrice // 发行价 1 = 多少个USDT
 	dbErr := DB.Model(ApplyBuy).Create(&ApplyBuy).Error
 	if dbErr != nil {
 		DB.Rollback()
