@@ -144,8 +144,8 @@ func UpdateResult(id string) {
 			// 创建钱包流水
 			var data models.WalletStream
 			data.Way = "1"                                                 // 流转方式 1 收入 2 支出
-			data.Type = "3"                                                // 流转类型 1 币币交易 2 永续合约 3 期权合约 4 申购交易 5 划转 6 充值 7 提现 8 冻结
-			data.TypeDetail = "11"                                         // 流转详细类型  1 USDT充值  2 银行卡充值  3 币币交易手续费  4 永续合约手续费  5 期权合约手续费  6 币币账户划转到合约账户  7 合约账户划转到币币账户  8 申购冻结  9 币币交易  10 永续合约  11 期权合约
+			data.Type = "7"                                                // 流转类型 0 未知 1 充值 2 提现 3 划转 4 快捷买币 5 空投 6 现货 7 合约 8 期权 9 手续费
+			data.TypeDetail = "11"                                         // 流转详细类型 0 未知 1 USDT充值 2银行卡充值 3现货划转合约 4合约划转现货 5提现 6空投支出 7空投收入 8现货支出 9现货收入 10合约支出 11合约收入 12期权支出 13期权收入
 			data.UserId = result.UserId                                    // 用户id
 			data.Email = result.Email                                      // 用户邮箱
 			data.TradingPairId = helpers.StringToInt(result.TradingPairId) // 交易对id

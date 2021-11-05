@@ -41,4 +41,5 @@ type ErrorCode struct {
 	OptionContractSecondsNotCorrect string `code:"10033" msg:"期权合约秒数不正确"`
 	OptionContractStatus            string `code:"10034" msg:"该期权合约暂未启用！"`
 	FeePerpetualContractIsError     string `code:"10035" msg:"永续合约手续费未设置，请联系运营配置！"`
+	MinAmountIsNotExist             string `code:"10036" msg:"未设置最小提现金额，请联系运营配置！"`
 }

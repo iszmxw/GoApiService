@@ -59,7 +59,7 @@ func RegisterWebRoutes(router *gin.RouterGroup) {
 			assetsStream.Any("/", v1Group.AssetsStreamController.AssetsStreamHandler)
 			// 单个币种余额
 			assetsStream.Any("/assets_type", v1Group.AssetsStreamController.AssetsTypeHandler)
-			// todo::划转暂时不做
+			// 划转
 			assetsStream.Any("/transfer", v1Group.AssetsStreamController.TransferHandler)
 			// 资产流水-订单时间(订单类型/全部交易对)
 			assetsStream.Any("/list", v1Group.OrderController.ListHandler)
@@ -76,6 +76,12 @@ func RegisterWebRoutes(router *gin.RouterGroup) {
 			Trade.Any("/recharge_log", v1Group.TradeController.ReChargeLogHandler)
 			// 获取提币页余额和提现手续费
 			Trade.Any("/get_withdraw_config", v1Group.TradeController.GetWithdrawConfigHandler)
+			// 添加提现地址
+			Trade.Any("/address/add", v1Group.TradeController.WalletAddressAddHandler)
+			// 删除提币地址
+			Trade.Any("/address/del", v1Group.TradeController.WalletAddressDelHandler)
+			// 提币地址列表
+			Trade.Any("/address/list", v1Group.TradeController.WalletAddressListHandler)
 			// 提币
 			Trade.Any("/withdraw", v1Group.TradeController.WithdrawHandler)
 			// 提币记录

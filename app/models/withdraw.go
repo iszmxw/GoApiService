@@ -16,7 +16,7 @@ type Withdraw struct {
 	Address         string             `json:"address"`           //提币地址
 	TradingPairId   string             `json:"trading_pair_id"`   //提现的交易对id
 	TradingPairName string             `json:"trading_pair_name"` //提现的交易对name
-	Type            int             `json:"type"`              //币链类型 1-OMNI 2-ERC20 3-TRC20
+	Type            string             `json:"type"`              //币链类型 1-OMNI 2-ERC20 3-TRC20
 	WithdrawNum     float64            `json:"withdraw_num"`      //提现数量
 	HandlingFee     float64            `json:"handling_fee"`      //手续费
 	ActuallyArrived float64            `json:"actually_arrived"`  //实际到账
@@ -50,6 +50,8 @@ func (m *Withdraw) GetPaginate(where map[string]interface{}, orderBy interface{}
 	// order by
 	if len(orderBy.(string)) > 0 {
 		table = table.Order(orderBy)
+	} else {
+		table = table.Order("id desc")
 	}
 	table = table.Offset(int(lists.Offset))
 	table = table.Limit(int(lists.PageSize))

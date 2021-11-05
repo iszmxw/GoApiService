@@ -8,7 +8,6 @@ import (
 	"goapi/app/requests"
 	"goapi/app/response"
 	"goapi/pkg/echo"
-	"goapi/pkg/helpers"
 	"goapi/pkg/mysql"
 	"goapi/pkg/validator"
 	"strconv"
@@ -119,6 +118,8 @@ func (h *TradeController) GetWithdrawConfigHandler(c *gin.Context) {
 	var (
 		params      requests.TradingPair
 		UsersWallet response.UsersWallet
+		Fees        models.WithdrawalFees
+		MinAmount   models.MinAmount
 	)
 	_ = c.Bind(&params) // 数据验证
 	vErr := validator.Validate.Struct(params)
@@ -127,11 +128,16 @@ func (h *TradeController) GetWithdrawConfigHandler(c *gin.Context) {
 		echo.Error(c, "ValidatorError", msg)
 		return
 	}
-	withdrawalFees := map[string]interface{}{}
+
 	DB := mysql.DB.Debug()
-	DB.Debug().Model(&models.Globals{}).Where("fields", "withdrawal_fees").Scan(withdrawalFees)
-	if len(withdrawalFees) <= 0 || withdrawalFees["id"].(uint32) <= 0 || len(withdrawalFees["value"].(string)) <= 0 {
+	DB.Debug().Model(models.Globals{}).Where("fields", "withdrawal_fees").Find(&Fees)
+	DB.Debug().Model(&models.Globals{}).Where("fields", "min_amount").Find(&MinAmount)
+	if Fees.Id <= 0 || Fees.Value <= 0 {
 		echo.Error(c, "withdrawalFeesIsNotExist", "")
+		return
+	}
+	if MinAmount.Id <= 0 || MinAmount.Value <= 0 {
+		echo.Error(c, "MinAmountIsNotExist", "")
 		return
 	}
 	userId, _ := c.Get("user_id")
@@ -145,18 +151,89 @@ func (h *TradeController) GetWithdrawConfigHandler(c *gin.Context) {
 		return
 	}
 	result := cmap.New().Items()
-	result["withdrawal_fees"] = withdrawalFees["value"]
+	result["withdrawal_fees"] = Fees.Value
+	result["min_amount"] = MinAmount.Value
 	result["balance"] = UsersWallet.Available // 可用余额
 	echo.Success(c, result, "", "")
 
 }
 
+// WalletAddressAddHandler 添加提现地址
+func (h *TradeController) WalletAddressAddHandler(c *gin.Context) {
+	var (
+		params  requests.WalletAddressAdd
+		AddData models.WalletAddress
+	)
+	_ = c.Bind(&params) // 数据验证
+	vErr := validator.Validate.Struct(params)
+	if vErr != nil {
+		msg := validator.Lang(c.Request.Header.Get("Language")).Translate(vErr, params, c.Request.Header.Get("Language"))
+		echo.Error(c, "ValidatorError", msg)
+		return
+	}
+	DB := mysql.DB.Debug().Begin()
+	userInfo, _ := c.Get("user")
+	userId, _ := c.Get("user_id")
+	AddData.UserId = userId.(int)
+	AddData.Email = userInfo.(map[string]interface{})["email"].(string)
+	AddData.Name = params.Name
+	AddData.Pact = params.Pact
+	AddData.Address = params.Address
+	cErr := DB.Model(models.WalletAddress{}).Create(&AddData).Error
+	if cErr != nil {
+		DB.Rollback()
+		echo.Error(c, "AddError", cErr.Error())
+		return
+	}
+	DB.Commit()
+	echo.Success(c, "", "", "")
+
+}
+
+// WalletAddressDelHandler 删除提币地址
+func (h *TradeController) WalletAddressDelHandler(c *gin.Context) {
+	var (
+		params  requests.WalletAddressDel
+		DelData models.WalletAddress
+	)
+	_ = c.Bind(&params) // 数据验证
+	vErr := validator.Validate.Struct(params)
+	if vErr != nil {
+		msg := validator.Lang(c.Request.Header.Get("Language")).Translate(vErr, params, c.Request.Header.Get("Language"))
+		echo.Error(c, "ValidatorError", msg)
+		return
+	}
+	DB := mysql.DB.Debug().Begin()
+	userId, _ := c.Get("user_id")
+	cErr := DB.Model(models.WalletAddress{}).
+		Where("id", params.Id).
+		Where("user_id", userId).
+		Delete(&DelData).Error
+	if cErr != nil {
+		DB.Rollback()
+		echo.Error(c, "AddError", cErr.Error())
+		return
+	}
+	DB.Commit()
+	echo.Success(c, "", "", "")
+
+}
+
+// WalletAddressListHandler 提币地址列表
+func (h *TradeController) WalletAddressListHandler(c *gin.Context) {
+	var result []models.WalletAddress
+	userId, _ := c.Get("user_id")
+	mysql.DB.Debug().Model(models.WalletAddress{}).Where("user_id", userId).Find(&result)
+	echo.Success(c, result, "", "")
+}
+
 // WithdrawHandler 提币
 func (h *TradeController) WithdrawHandler(c *gin.Context) {
 	var (
-		params      requests.AddWithdraw
-		AddData     models.Withdraw
-		TradingPair response.TradingPair
+		params        requests.AddWithdraw
+		AddData       models.Withdraw
+		TradingPair   response.TradingPair
+		WalletAddress response.WalletAddress
 	)
 	_ = c.Bind(&params)
 	// 数据验证
@@ -169,14 +246,18 @@ func (h *TradeController) WithdrawHandler(c *gin.Context) {
 	userId, _ := c.Get("user_id")
 	userInfo, _ := c.Get("user")
 	DB := mysql.DB.Debug().Begin()
-	DB.Model(models.TradingPair{}).Where("id", params.TradingPairId).Find(&TradingPair)
+	DB.Model(models.TradingPair{}).Where("id", "1").Find(&TradingPair)
 	if TradingPair.Id <= 0 {
 		echo.Error(c, "TradingPairIsNotExist", "")
 		return
 	}
-	// 检查钱包余额是否充足
+	// 检查现货钱包余额是否充足
 	var UsersWallet response.UsersWallet
-	DB.Model(models.UsersWallet{}).Where(map[string]interface{}{"user_id": userId, "trading_pair_id": params.TradingPairId}).Find(&UsersWallet)
+	DB.Model(models.UsersWallet{}).
+		Where("trading_pair_id", "1").
+		Where("type", "1").
+		Where("user_id", userId).
+		Find(&UsersWallet)
 	WithdrawNum, _ := strconv.ParseFloat(params.WithdrawNum, 64)
 	if WithdrawNum > UsersWallet.Available {
 		echo.Error(c, "InsufficientBalance", "")
@@ -188,14 +269,14 @@ func (h *TradeController) WithdrawHandler(c *gin.Context) {
 		echo.Error(c, "WithdrawalFeesIsError", "")
 		return
 	}
-
+	DB.Model(models.WalletAddress{}).Where("id", params.AddressId).Find(&WalletAddress)
 	// 收集添加数据
 	AddData.UserId = userId.(int)
 	AddData.Email = userInfo.(map[string]interface{})["email"].(string)
-	AddData.Address = params.Address
-	AddData.TradingPairId = params.TradingPairId
+	AddData.Address = WalletAddress.Address
+	AddData.TradingPairId = "1"
 	AddData.TradingPairName = TradingPair.Name
-	AddData.Type = helpers.StringToInt(params.Type) + 1
+	AddData.Type = params.Type
 	AddData.WithdrawNum = WithdrawNum
 	AddData.HandlingFee = WithdrawalFees.Value
 	AddData.ActuallyArrived = WithdrawNum - (WithdrawNum * (WithdrawalFees.Value / 100))
