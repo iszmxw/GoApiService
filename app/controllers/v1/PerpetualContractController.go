@@ -249,6 +249,7 @@ func (h *PerpetualContractController) TradeHandler(c *gin.Context) {
 		echo.Error(c, "AddError", err4.Error())
 		return
 	}
+	WalletStream.HandlingFee = addData.HandleFee // 记录手续费
 	cErr = DB.Model(WalletStream).Create(&WalletStream).Error
 	if cErr != nil {
 		DB.Rollback()

@@ -17,6 +17,7 @@ type WalletStream struct {
 	UserId          int                `json:"user_id"`           //用户id
 	Email           string             `json:"email"`             //用户邮箱
 	Amount          string             `json:"amount"`            //流转金额
+	HandlingFee     string             `json:"handling_fee"`      //手续费
 	AmountBefore    float64            `json:"amount_before"`     //流转前的余额
 	AmountAfter     float64            `json:"amount_after"`      //流转后的余额
 	Way             string             `json:"way"`               //流转方式 1 收入 2 支出

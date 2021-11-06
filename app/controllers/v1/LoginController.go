@@ -213,6 +213,7 @@ func (h *LoginController) VerifyRegisterHandler(c *gin.Context) {
 		} else {
 			user.UserPath = parentUser.UserPath + "," + strconv.Itoa(user.Id)
 		}
+		user.ParentId = parentUser.Id
 		user.UserLevel = parentUser.UserLevel + 1
 	}
 
