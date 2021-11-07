@@ -8,6 +8,7 @@ import (
 // ApplyBuy 申购币种记录
 type ApplyBuy struct {
 	Id              int                `json:"id"`                //主键id
+	UserId          string             `json:"user_id"`           //用户id
 	Email           string             `json:"email"`             //申购用户
 	GetCurrencyId   int                `json:"get_currency_id"`   //购买币种id
 	GetCurrencyName string             `json:"get_currency_name"` //购买币种名称

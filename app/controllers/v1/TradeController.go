@@ -345,7 +345,8 @@ func (h *TradeController) SubmitApplyBuyHandler(c *gin.Context) {
 	}
 	user := userInfo.(map[string]interface{})
 	ApplyBuy := models.ApplyBuy{}
-	ApplyBuy.Email = user["email"].(string)         // 邮件
+	ApplyBuy.UserId = user["id"].(string)           // 用户ID
+	ApplyBuy.Email = user["email"].(string)         // 用户邮件
 	ApplyBuy.GetCurrencyId = params.GetCurrencyId   // 申购购买币种id
 	ApplyBuy.GetCurrencyNum = params.GetCurrencyNum // 申购购买数量
 	DB := mysql.DB.Debug().Begin()
