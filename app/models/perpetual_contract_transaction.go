@@ -24,6 +24,7 @@ type PerpetualContractTransaction struct {
 	TransactionType string             `json:"transaction_type"`  //交易类型：1-开多 2-开空
 	EntrustNum      string             `json:"entrust_num"`       //委托量
 	EntrustPrice    string             `json:"entrust_price"`     //委托价格
+	ClinchPrice     string             `json:"clinch_price"`      //成交价格
 	EnsureAmount    string             `json:"ensure_amount"`     //保证金
 	HandleFee       string             `json:"handle_fee"`        //手续费，单位百分比
 	Multiple        string             `json:"multiple"`          //倍数值

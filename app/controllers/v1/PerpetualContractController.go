@@ -353,9 +353,9 @@ func (h *PerpetualContractController) LiquidationHandler(c *gin.Context) {
 	fmt.Println("最终盈利：", income)
 	//clinchPrice, err1 := huobi.Kline(PerpetualContractTransaction.KLineCode)
 	Updates := cmap.New().Items()
-	Updates["income"] = income // 最终收益
-	Updates["status"] = "1"    // 确认状态
-	//Updates["clinch_price"] = clinchPrice // 成交价格
+	Updates["income"] = income                   // 最终收益
+	Updates["status"] = "1"                      // 确认状态
+	Updates["clinch_price"] = params.Liquidation // 成交价格
 	err2 := DB.Model(models.PerpetualContractTransaction{}).Where(where).Updates(Updates).Error
 	if err2 != nil {
 		logger.Error(errors.New("平仓失败"))
