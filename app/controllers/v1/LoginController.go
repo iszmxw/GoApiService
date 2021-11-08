@@ -195,7 +195,6 @@ func (h *LoginController) VerifyRegisterHandler(c *gin.Context) {
 	user.Nickname = params.Email
 	user.UserLevel = 1 // 默认为1
 	user.Password = helpers.Md5(params.Password)
-	user.PayPassword = helpers.Md5(params.PayPassword)
 	user.LoginTime = timeNow
 	user.LastLoginIp = c.ClientIP()
 	user.Status = "0" // 正常
