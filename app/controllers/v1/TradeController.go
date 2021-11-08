@@ -9,6 +9,7 @@ import (
 	"goapi/app/requests"
 	"goapi/app/response"
 	"goapi/pkg/echo"
+	"goapi/pkg/helpers"
 	"goapi/pkg/logger"
 	"goapi/pkg/mysql"
 	"goapi/pkg/validator"
@@ -345,12 +346,13 @@ func (h *TradeController) SubmitApplyBuyHandler(c *gin.Context) {
 		echo.Error(c, "ValidatorError", msg)
 		return
 	}
+	userId, _ := c.Get("user_id")
 	user := userInfo.(map[string]interface{})
 	ApplyBuy := models.ApplyBuy{}
-	ApplyBuy.UserId = user["id"].(string)           // 用户ID
-	ApplyBuy.Email = user["email"].(string)         // 用户邮件
-	ApplyBuy.GetCurrencyId = params.GetCurrencyId   // 申购购买币种id
-	ApplyBuy.GetCurrencyNum = params.GetCurrencyNum // 申购购买数量
+	ApplyBuy.UserId = helpers.IntToString(userId.(int)) // 用户ID
+	ApplyBuy.Email = user["email"].(string)             // 用户邮件
+	ApplyBuy.GetCurrencyId = params.GetCurrencyId       // 申购购买币种id
+	ApplyBuy.GetCurrencyNum = params.GetCurrencyNum     // 申购购买数量
 	DB := mysql.DB.Debug().Begin()
 	var ApplyBuySetup response.ApplyBuySetup
 	DB.Model(models.ApplyBuySetup{}).Where("id", params.GetCurrencyId).Find(&ApplyBuySetup)
@@ -380,7 +382,6 @@ func (h *TradeController) SubmitApplyBuyHandler(c *gin.Context) {
 		return
 	}
 
-	userId, _ := c.Get("user_id")
 	// 消费掉的 USDT
 	Amount := ApplyBuySetup.IssuePrice * params.GetCurrencyNum
 
