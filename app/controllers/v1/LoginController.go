@@ -9,7 +9,7 @@ import (
 	"goapi/app/response"
 	"goapi/pkg/config"
 	"goapi/pkg/echo"
-	"goapi/pkg/gmail"
+	"goapi/pkg/email"
 	"goapi/pkg/helpers"
 	"goapi/pkg/logger"
 	"goapi/pkg/mysql"
@@ -119,8 +119,7 @@ func (h *LoginController) SendEmailRegisterHandler(c *gin.Context) {
 		echo.Error(c, "SendEmail", "")
 		return
 	}
-	//err := email.SendEmail(" Register Send Code", "mail@54zm.com", params.Email, )
-	err := gmail.New().Send("Register Send Code", Code, params.Email)
+	err := email.SendEmail("Register Send Code", Code, params.Email)
 	if err != nil {
 		logger.Error(err)
 		echo.Error(c, "SendEmail", err.Error())
@@ -330,8 +329,7 @@ func (h *LoginController) SendEmailRetrieveHandler(c *gin.Context) {
 		echo.Error(c, "SendEmail", "")
 		return
 	}
-	err := gmail.New().Send("Retrieve Password Send Code", Code, params.Email)
-	//err := email.SendEmail("Retrieve Password Send Code", "mail@54zm.com", params.Email, Code)
+	err := email.SendEmail("Retrieve Password Send Code", Code, params.Email)
 	if err != nil {
 		echo.Error(c, "SendEmail", err.Error())
 		return
