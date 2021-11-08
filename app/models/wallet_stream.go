@@ -41,7 +41,7 @@ func (m *WalletStream) SetAddData(Way, Type, TypeDetail string, addData interfac
 	data.Type = Type             // 流转类型 0 未知 1 充值 2 提现 3 划转 4 快捷买币 5 空投 6 现货 7 合约 8 期权 9 手续费
 	data.TypeDetail = TypeDetail // 流转详细类型 0 未知 1 USDT充值 2银行卡充值 3现货划转合约 4合约划转现货 5提现 6空投支出 7空投收入 8现货支出 9现货收入 10合约支出 11合约收入 12期权支出 13期权收入
 	switch data.Type {
-	case "1":
+	case "6":
 		// 1-币币交易
 		{
 			data.UserId = addData.(CurrencyTransaction).UserId
@@ -57,7 +57,7 @@ func (m *WalletStream) SetAddData(Way, Type, TypeDetail string, addData interfac
 			data.AmountAfter = Amount + UsersWallet.Available // 流转后的余额
 		}
 		break
-	case "2":
+	case "7":
 		// 2-永续合约
 		{
 
@@ -74,7 +74,7 @@ func (m *WalletStream) SetAddData(Way, Type, TypeDetail string, addData interfac
 			data.AmountAfter = Amount + UsersWallet.Available // 流转后的余额
 		}
 		break
-	case "3":
+	case "8":
 		// 3-期权合约
 		{
 			data.UserId = addData.(OptionContractTransaction).UserId
