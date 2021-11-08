@@ -16,10 +16,10 @@ func RegisterWebRoutes(router *gin.RouterGroup) {
 		ApiRoute.Use(middlewares.Client())
 		// 登录系统
 		ApiRoute.Any("/user/login", v1Group.LoginController.LoginHandler)
-		// 发送注册邮件
-		ApiRoute.Any("/user/send_email_register", v1Group.LoginController.SendEmailRegisterHandler)
 		// 找回密码邮件
 		ApiRoute.Any("/user/send_email_retrieve", v1Group.LoginController.SendEmailRetrieveHandler)
+		// 验证用户提交的信息，并且发送验证码
+		ApiRoute.Any("/user/send_email_register", v1Group.LoginController.SendEmailRegisterHandler)
 		// 保存注册信息
 		ApiRoute.Any("/user/verify_register", v1Group.LoginController.VerifyRegisterHandler)
 		// 重置密码前验证邮件Code

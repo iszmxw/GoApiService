@@ -101,7 +101,7 @@ func (h *LoginController) LoginHandler(c *gin.Context) {
 // @Router /v1/api/user/send_email_register [post]
 func (h *LoginController) SendEmailRegisterHandler(c *gin.Context) {
 	// 初始化数据模型结构体
-	var params requests.UserEmail
+	var params requests.SendEmailRegister
 	// 绑定接收的 json 数据到结构体中
 	_ = c.Bind(&params)
 	// 数据验证
@@ -109,6 +109,13 @@ func (h *LoginController) SendEmailRegisterHandler(c *gin.Context) {
 	if vErr != nil {
 		msg := validator.Lang(c.Request.Header.Get("Language")).Translate(vErr, params, c.Request.Header.Get("Language"))
 		echo.Error(c, "", msg)
+		return
+	}
+	// 检查用户是否注册
+	UserIsExist := new(response.User)
+	models.User{}.GetOne(map[string]interface{}{"email": params.Email}, UserIsExist)
+	if UserIsExist.Id > 0 {
+		echo.Error(c, "UserIsExist", "")
 		return
 	}
 	Code := helpers.Rand(6)
