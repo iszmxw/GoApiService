@@ -350,12 +350,22 @@ func (h *TradeController) SubmitApplyBuyHandler(c *gin.Context) {
 	ApplyBuy.GetCurrencyId = params.GetCurrencyId   // 申购购买币种id
 	ApplyBuy.GetCurrencyNum = params.GetCurrencyNum // 申购购买数量
 	DB := mysql.DB.Debug().Begin()
-	var ApplyBuySetup models.ApplyBuySetup
-	DB.Model(ApplyBuySetup).Where("id", params.GetCurrencyId).Find(&ApplyBuySetup)
+	var ApplyBuySetup response.ApplyBuySetup
+	DB.Model(models.ApplyBuySetup{}).Where("id", params.GetCurrencyId).Find(&ApplyBuySetup)
 	if ApplyBuySetup.Id <= 0 {
 		echo.Error(c, "ApplyBuySetupIsNotExist", "")
 		return
 	}
+	if ApplyBuySetup.Status != 1 { // 币种状态  0 关闭 1 开启
+		echo.Error(c, "ApplyBuySetupStatusIsNotExist", "")
+		return
+	}
+	// 开启了申购码
+	if ApplyBuySetup.Status == 1 { // 申购码开关  0 关闭 1 开启
+		echo.Error(c, "ApplyBuySetupStatusIsNotExist", "")
+		return
+	}
+
 	ApplyBuy.GetCurrencyName = ApplyBuySetup.Name  // 申购购买币种名称
 	ApplyBuy.TradingPairId = 1                     // 交易对id
 	ApplyBuy.TradingPairName = "USDT"              // 交易对名称

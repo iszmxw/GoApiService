@@ -16,6 +16,7 @@ type CurrencyTransaction struct {
 	OrderNumber     string             `json:"order_number" form:"order_number"`         // 订单号
 	CurrencyId      int                `json:"currency_id" form:"currency_id"`           // 币种
 	CurrencyName    string             `json:"currency_name" form:"currency_name"`       // 币种名称 例如：BTC/USDT（币种/交易对）
+	EntrustNum      string             `json:"entrust_num" form:"entrust_num"`           // 委托量
 	OrderType       string             `json:"order_type" form:"order_type"`             // 挂单类型：1-限价 2-市价
 	LimitPrice      string             `json:"limit_price" form:"limit_price"`           // 当前限价
 	ClinchNum       string             `json:"clinch_num" form:"clinch_num"`             // 成交量

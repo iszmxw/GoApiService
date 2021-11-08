@@ -76,7 +76,7 @@ func (h *CurrencyCurrencyController) TransactionHandler(c *gin.Context) {
 	}
 	addData.CurrencyId = CurrencyId // 币种
 	addData.UserId = userId.(int)   // 用户id
-	//addData.EntrustNum = params.EntrustNum           // todo::收集无用--委托量
+	addData.EntrustNum = params.EntrustNum           // 委托量
 	addData.LimitPrice = params.LimitPrice           // 当前限价
 	addData.ClinchNum = params.ClinchNum             // 成交量
 	addData.OrderType = params.OrderType             // 挂单类型：1-限价 2-市价

@@ -43,4 +43,5 @@ type ErrorCode struct {
 	FeePerpetualContractIsError         string `code:"10035" msg:"永续合约手续费未设置，请联系运营配置！"`
 	MinAmountIsNotExist                 string `code:"10036" msg:"未设置最小提现金额，请联系运营配置！"`
 	OptionContractProfitRatioNotCorrect string `code:"10037" msg:"期权合约收益率不正确"`
+	ApplyBuySetupStatusIsNotExist       string `code:"10037" msg:"申购币种暂未开启"`
 }

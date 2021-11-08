@@ -9,7 +9,7 @@ import (
 type ApplyBuySetup struct {
 	Id            uint               `json:"id"`             //主键id
 	Name          string             `json:"name"`           //币种名称
-	IssuePrice    int                `json:"issue_price"`    //发行价 1 = 多少个USDT
+	IssuePrice    float64            `json:"issue_price"`    //发行价 1 = 多少个USDT
 	EstimatedTime helpers.TimeNormal `json:"estimated_time"` //预计上线时间
 	StartTime     helpers.TimeNormal `json:"start_time"`     //开始申购时间
 	EndTime       helpers.TimeNormal `json:"end_time"`       //结束申购时间
