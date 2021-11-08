@@ -223,7 +223,7 @@ func (h *OptionContractController) TradeHandler(c *gin.Context) {
 	// Way 流转方式 1 收入 2 支出
 	// Type 流转类型 0 未知 1 充值 2 提现 3 划转 4 快捷买币 5 空投 6 现货 7 合约 8 期权 9 手续费
 	// TypeDetail 流转详细类型 0 未知 1 USDT充值 2银行卡充值 3现货划转合约 4合约划转现货 5提现 6空投支出 7空投收入 8现货支出 9现货收入 10合约支出 11合约收入 12期权支出 13期权收入
-	WalletStream, err4 := new(models.WalletStream).SetAddData("2", "7", "10", addData, Currency, UsersWallet)
+	WalletStream, err4 := new(models.WalletStream).SetAddData("2", "8", "10", addData, Currency, UsersWallet)
 	if err4 != nil {
 		DB.Rollback()
 		echo.Error(c, "AddError", err4.Error())
