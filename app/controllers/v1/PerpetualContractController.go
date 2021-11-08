@@ -317,6 +317,7 @@ func (h *PerpetualContractController) LiquidationHandler(c *gin.Context) {
 	whereWallet := cmap.New().Items()
 	whereWallet["user_id"] = PerpetualContractTransaction.UserId
 	whereWallet["trading_pair_id"] = PerpetualContractTransaction.TradingPairId
+	whereWallet["type"] = "2" // 钱包类型：1现货 2合约
 	var UsersWallet response.UsersWallet
 	DB.Model(models.UsersWallet{}).Where(whereWallet).Find(&UsersWallet)
 	// 用户可用余额不足
@@ -369,7 +370,7 @@ func (h *PerpetualContractController) LiquidationHandler(c *gin.Context) {
 	UpdateUsersWallet["available"] = UsersWallet.Available + income // 返回保证金
 	editError := DB.Model(models.UsersWallet{}).
 		Where("user_id", userId).
-		Where("type", "1"). // 钱包类型：1现货 2合约
+		Where("type", "2"). // 钱包类型：1现货 2合约
 		Where("trading_pair_id", PerpetualContractTransaction.TradingPairId).
 		Updates(UpdateUsersWallet).Error
 	if editError != nil {

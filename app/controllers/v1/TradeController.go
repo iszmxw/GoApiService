@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	cmap "github.com/orcaman/concurrent-map"
@@ -8,6 +9,7 @@ import (
 	"goapi/app/requests"
 	"goapi/app/response"
 	"goapi/pkg/echo"
+	"goapi/pkg/logger"
 	"goapi/pkg/mysql"
 	"goapi/pkg/validator"
 	"strconv"
@@ -360,11 +362,11 @@ func (h *TradeController) SubmitApplyBuyHandler(c *gin.Context) {
 		echo.Error(c, "ApplyBuySetupStatusIsNotExist", "")
 		return
 	}
-	// 开启了申购码
-	if ApplyBuySetup.Status == 1 { // 申购码开关  0 关闭 1 开启
-		echo.Error(c, "ApplyBuySetupStatusIsNotExist", "")
-		return
-	}
+	//// 开启了申购码
+	//if ApplyBuySetup.CodeStatus == 1 && params.Code != ApplyBuySetup.Code{ // 申购码开关  0 关闭 1 开启
+	//	echo.Error(c, "ApplyBuySetupStatusIsNotExist", "")
+	//	return
+	//}
 
 	ApplyBuy.GetCurrencyName = ApplyBuySetup.Name  // 申购购买币种名称
 	ApplyBuy.TradingPairId = 1                     // 交易对id
@@ -377,6 +379,110 @@ func (h *TradeController) SubmitApplyBuyHandler(c *gin.Context) {
 		echo.Error(c, "AddError", dbErr.Error())
 		return
 	}
+
+	userId, _ := c.Get("user_id")
+	// 消费掉的 USDT
+	Amount := ApplyBuySetup.IssuePrice * params.GetCurrencyNum
+
+	// 查询用户是否有该钱包
+	var GetUsersWallet response.UsersWallet
+	DB.Model(models.UsersWallet{}).
+		Where("user_id", userId).
+		Where("trading_pair_id", ApplyBuy.GetCurrencyId).
+		Where("type", "2").
+		Find(&GetUsersWallet)
+	if GetUsersWallet.Id <= 0 {
+		DB.Rollback()
+		echo.Error(c, "UsersWalletIsNotExist", "")
+		return
+	}
+	// 查询用户钱包信息
+	var UsersWallet response.UsersWallet
+	DB.Model(models.UsersWallet{}).
+		Where("user_id", userId).
+		Where("trading_pair_id", "1").
+		Where("type", "2"). // 钱包类型：1现货 2合约
+		Find(&UsersWallet)
+	// 用户可用余额不足
+	if UsersWallet.Available < 0 || UsersWallet.Id <= 0 {
+		logger.Error(errors.New(fmt.Sprintf("UsersWallet.Available: %v < 0 || UsersWallet.Id: %v <= 0", UsersWallet.Available, UsersWallet.Id)))
+		DB.Rollback()
+		echo.Error(c, "InsufficientBalance", "")
+		return
+	}
+
+	// 修改钱包余额 （空投消费）
+	UpdateUsersWallet := cmap.New().Items()
+	UpdateUsersWallet["available"] = UsersWallet.Available - Amount // 返回保证金
+	editError := DB.Model(models.UsersWallet{}).
+		Where("user_id", userId).
+		Where("type", "2"). // 钱包类型：1现货 2合约
+		Where("trading_pair_id", "1").
+		Updates(UpdateUsersWallet).Error
+	if editError != nil {
+		logger.Error(errors.New(fmt.Sprintf("修改钱包余额失败，%v", editError.Error())))
+		DB.Rollback()
+		echo.Error(c, "AddError", editError.Error())
+		return
+	}
+	// 修改钱包余额
+
+	// 修改钱包余额 （空投收入）
+	UpdateUsersWallet1 := cmap.New().Items()
+	UpdateUsersWallet1["available"] = GetUsersWallet.Available + Amount // 申购所得的币种
+	editError1 := DB.Model(models.UsersWallet{}).
+		Where("user_id", userId).
+		Where("type", "2"). // 钱包类型：1现货 2合约
+		Where("trading_pair_id", GetUsersWallet.TradingPairId).
+		Updates(UpdateUsersWallet1).Error
+	if editError1 != nil {
+		logger.Error(errors.New(fmt.Sprintf("修改钱包余额失败，%v", editError.Error())))
+		DB.Rollback()
+		echo.Error(c, "AddError", editError1.Error())
+		return
+	}
+	// 修改钱包余额
+
+	// 创建钱包消费流水
+	var data models.WalletStream
+	data.Way = "2"                                    // 流转方式 1 收入 2 支出
+	data.Type = "5"                                   // 流转类型 0 未知 1 充值 2 提现 3 划转 4 快捷买币 5 空投 6 现货 7 合约 8 期权 9 手续费
+	data.TypeDetail = "6"                             // 流转详细类型 0 未知 1 USDT充值 2银行卡充值 3现货划转合约 4合约划转现货 5提现 6空投支出 7空投收入 8现货支出 9现货收入 10合约支出 11合约收入 12期权支出 13期权收入
+	data.UserId = userId.(int)                        // 用户id
+	data.Email = user["email"].(string)               // 用户邮箱
+	data.TradingPairId = 1                            // 交易对id
+	data.TradingPairName = "USDT"                     // 交易对名称
+	data.Amount = fmt.Sprintf("%v", Amount)           // 流转金额
+	data.AmountBefore = UsersWallet.Available         // 流转前的余额
+	data.AmountAfter = UsersWallet.Available - Amount // 流转后的余额
+	cErr := DB.Model(models.WalletStream{}).Create(&data).Error
+	if cErr != nil {
+		logger.Error(errors.New(fmt.Sprintf("创建钱包流水失败，%v", cErr.Error())))
+		DB.Rollback()
+		echo.Error(c, "AddError", "")
+		return
+	}
+
+	// 创建钱包收入流水
+	var data1 models.WalletStream
+	data1.Way = "1"                                        // 流转方式 1 收入 2 支出
+	data1.Type = "5"                                       // 流转类型 0 未知 1 充值 2 提现 3 划转 4 快捷买币 5 空投 6 现货 7 合约 8 期权 9 手续费
+	data1.TypeDetail = "7"                                 // 流转详细类型 0 未知 1 USDT充值 2银行卡充值 3现货划转合约 4合约划转现货 5提现 6空投支出 7空投收入 8现货支出 9现货收入 10合约支出 11合约收入 12期权支出 13期权收入
+	data1.UserId = userId.(int)                            // 用户id
+	data1.Email = user["email"].(string)                   // 用户邮箱
+	data1.TradingPairId = GetUsersWallet.TradingPairId     // 交易对id
+	data1.TradingPairName = GetUsersWallet.TradingPairName // 交易对名称
+	data1.Amount = fmt.Sprintf("%v", Amount)               // 流转金额
+	data1.AmountBefore = GetUsersWallet.Available          // 流转前的余额
+	data1.AmountAfter = GetUsersWallet.Available + Amount  // 流转后的余额
+	cErr1 := DB.Model(models.WalletStream{}).Create(&data1).Error
+	if cErr1 != nil {
+		logger.Error(errors.New(fmt.Sprintf("创建钱包流水失败，%v", cErr1.Error())))
+		DB.Rollback()
+		echo.Error(c, "AddError", "")
+		return
+	}
+
 	DB.Commit()
 
 	echo.Success(c, ApplyBuy, "", "")
