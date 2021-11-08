@@ -45,9 +45,9 @@ func GetParentAgentTree(userId string, Amount float64) {
 		Where("parent_id", userId). // 上级代理
 		Find(&Parent)
 	logger.Info(Parent)
-	if Parent.AgentDividend <= 0 {
-		// 上级代理红利未设置，不做处理
+	if Parent.Id <= 0 || Parent.AgentDividend <= 0 {
+		// 上级代理不存在或者上级红利未设置，不做处理，直接跳过
 		return
 	}
-	
+
 }
