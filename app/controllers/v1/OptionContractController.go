@@ -8,6 +8,7 @@ import (
 	"goapi/app/models"
 	"goapi/app/requests"
 	"goapi/app/response"
+	"goapi/pkg/agent_dividend"
 	"goapi/pkg/echo"
 	"goapi/pkg/helpers"
 	"goapi/pkg/logger"
@@ -244,6 +245,26 @@ func (h *OptionContractController) TradeHandler(c *gin.Context) {
 		echo.Error(c, "AddError", rErr.Error())
 		return
 	}
+
+	// 检测分发代理分润
+	var UserInfo response.User
+	DB.Model(models.User{}).Where("id", userId).Find(&UserInfo) // 查询用户信息
+	if UserInfo.ParentId > 0 {                                  // parentId 上级代理id
+		var arr agent_dividend.Params
+		arr.UserId = UserInfo.ParentId                // 用户id
+		arr.Email = UserInfo.Email                    // 用户邮箱
+		arr.WalletType = 2                            // 钱包类型：1现货 2合约
+		arr.TradingPairId = Currency.TradingPairId    // 交易对id
+		arr.TradingPairName = addData.TradingPairName // 交易对名称
+		arr.TransactionAmount = Price                 // 交易金额
+		arr.ParentDividend = 0                        // 上级获得的分润,初始化该值，最底层代理的上级代理分润默认为零，用来后面计算
+		arr.WalletStreamType = "8"                    // 流转类型 0 未知 1 充值 2 提现 3 划转 4 快捷买币 5 空投 6 现货 7 合约 8 期权 9 手续费
+		arr.WalletStreamTypeDetail = "13"             // 流转详细类型 0 未知 1 USDT充值 2银行卡充值 3现货划转合约 4合约划转现货 5提现 6空投支出 7空投收入 8现货支出 9现货收入 10合约支出 11合约收入 12期权支出 13期权收入
+		arr.Current = 10                              // 层级默认只处理10层关系
+		// 开启一个 goroutine 去处理
+		go agent_dividend.ParentAgentDividend(arr)
+	}
+
 	DB.Commit()
 	echo.Success(c, addData, "ok", "")
 }

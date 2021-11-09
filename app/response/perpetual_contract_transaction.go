@@ -25,7 +25,7 @@ type PerpetualContractTransaction struct {
 	EnsureAmount    float64            `json:"ensure_amount"`     //保证金
 	HandleFee       float64            `json:"handle_fee"`        //手续费，单位百分比
 	Multiple        int                `json:"multiple"`          //倍数值
-	Price           string             `json:"price"`             //交易金额
+	Price           float64            `json:"price"`             //交易金额
 	Income          float64            `json:"income"`            //最终收益
 	Status          int                `json:"status"`            //状态：0 交易中 1 已完成 2 已撤单
 	Remark          string             `json:"remark"`            //备注
