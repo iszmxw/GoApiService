@@ -17,7 +17,7 @@ func SendEmail(Subject, fromUser, toUser, Code string) error {
 	e.To = []string{toUser}
 	e.Subject = Subject
 
-	t, err := template.ParseFiles("pkg/email/send.html")
+	t, err := template.ParseFiles("pkg/email/qq/send.html")
 	if err != nil {
 		return err
 	}

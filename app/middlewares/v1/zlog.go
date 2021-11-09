@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -8,6 +9,7 @@ import (
 	"go.uber.org/zap"
 	"goapi/pkg/config"
 	"goapi/pkg/logger"
+	"io/ioutil"
 )
 
 const DefaultHeader = "Tracking-Id"
@@ -33,14 +35,14 @@ func TraceLogger() gin.HandlerFunc {
 		headers, _ := json.Marshal(ctx.Request.Header)
 		logger.NewContext(ctx, zap.String("request.headers", string(headers)))
 		// 将请求参数json序列化后添加进日志上下文
-		if ctx.Request.Form == nil {
-			err := ctx.Request.ParseMultipartForm(32 << 20)
-			if err != nil {
-				fmt.Println(err)
-			}
+		ctx.Request.Header.Get("")
+		data, err := ctx.GetRawData()
+		if err != nil {
+			logger.Error(err)
 		}
-		form, _ := json.Marshal(ctx.Request.Form)
-		logger.NewContext(ctx, zap.String("request.params", string(form)))
+		// 很关键,把读过的字节流重新放到body
+		ctx.Request.Body = ioutil.NopCloser(bytes.NewBuffer(data))
+		logger.NewContext(ctx, zap.Any("request.params", string(data)))
 		ctx.Next()
 	}
 }

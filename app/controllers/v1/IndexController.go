@@ -53,13 +53,20 @@ func (h *IndexController) BannerHandler(c *gin.Context) {
 
 // SysCurrencyHandler 首页-币种列表
 func (h *IndexController) SysCurrencyHandler(c *gin.Context) {
-	var currencyList []response.Currency
+	var (
+		currencyList []response.Currency
+		params       requests.SysCurrencyType
+	)
 	DB := mysql.DB.Debug()
-	DB.Model(models.Currency{}).
+	Query := DB.Model(models.Currency{}).
 		Where("is_hidden", "1").
 		Select(models.Prefix("$_currency.*,$_trading_pair.name as trading_pair_name")).
-		Joins(models.Prefix("left join $_trading_pair on $_trading_pair.id=$_currency.trading_pair_id")).
-		Find(&currencyList)
+		Joins(models.Prefix("left join $_trading_pair on $_trading_pair.id=$_currency.trading_pair_id"))
+	// 搜索条件
+	if len(params.Type) > 0 {
+		Query = Query.Where("type IN (?)")
+	}
+	Query.Find(&currencyList)
 	echo.Success(c, currencyList, "", "")
 }
 
