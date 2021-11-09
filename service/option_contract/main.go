@@ -64,9 +64,18 @@ func UpdateResult(id string) {
 	DB := mysql.DB.Debug().Begin()
 	DB.Model(OptionContractTransaction).
 		Where(models.Prefix("$_option_contract_transaction.id"), id).
+		Where(models.Prefix("$_option_contract_transaction.status"), "0").
 		Joins(models.Prefix("left join $_currency on $_option_contract_transaction.currency_id=$_currency.id")).
 		Select(models.Prefix("$_option_contract_transaction.*,$_currency.k_line_code")).
 		Find(&result)
+	if result.Id <= 0 {
+		logger.Error(errors.New("订单不存在或者已经手动平仓"))
+		return
+	}
+	if result.Status > 0 {
+		logger.Error(errors.New("该订单已确认"))
+		return
+	}
 	logger.Info(fmt.Sprintf("k线图代码: %v", result.KLineCode))
 	clinchPrice, err1 := huobi.Kline(result.KLineCode)
 	Updates := cmap.New().Items()

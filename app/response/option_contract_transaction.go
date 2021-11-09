@@ -52,7 +52,7 @@ type OptionTransactionKline struct {
 	KLineCode        string             `json:"k_line_code"`        //k线图
 	OrderType        string             `json:"order_type"`         //订单类型：1-买涨 2-买跌
 	OrderResult      string             `json:"order_result"`       //交割结果：1-涨 2-跌
-	Status           string             `json:"status"`             //状态：0 交易中 1 已完成 2 已撤单
+	Status           int                `json:"status"`             //状态：0 交易中 1 已完成 2 已撤单
 	Remark           string             `json:"remark"`             //备注
 	CreatedAt        helpers.TimeNormal `json:"created_at"`         //创建时间
 	UpdatedAt        helpers.TimeNormal `json:"updated_at"`         //更新时间

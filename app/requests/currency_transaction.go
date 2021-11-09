@@ -14,8 +14,13 @@ type CancelOrder struct {
 	Id string `json:"id" form:"id" validate:"required,numeric"` // id
 }
 
-// Liquidation 平仓
+// Liquidation 永续合约平仓
 type Liquidation struct {
 	Id          string  `json:"id" form:"id" validate:"required,numeric"`                   // id
 	Liquidation float64 `json:"liquidation" form:"liquidation" validate:"required,numeric"` // 平仓
+}
+
+// OptionContractTransactionLiquidation 期权交易平仓
+type OptionContractTransactionLiquidation struct {
+	Id string `json:"id" form:"id" validate:"required,numeric"` // id
 }
