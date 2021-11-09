@@ -57,6 +57,7 @@ func (h *IndexController) SysCurrencyHandler(c *gin.Context) {
 		currencyList []response.Currency
 		params       requests.SysCurrencyType
 	)
+	_ = c.Bind(&params)
 	DB := mysql.DB.Debug()
 	Query := DB.Model(models.Currency{}).
 		Where("is_hidden", "1").
@@ -64,7 +65,7 @@ func (h *IndexController) SysCurrencyHandler(c *gin.Context) {
 		Joins(models.Prefix("left join $_trading_pair on $_trading_pair.id=$_currency.trading_pair_id"))
 	// 搜索条件
 	if len(params.Type) > 0 {
-		Query = Query.Where("type IN (?)")
+		Query = Query.Where("FIND_IN_SET(?,type)", params.Type)
 	}
 	Query.Find(&currencyList)
 	echo.Success(c, currencyList, "", "")
