@@ -43,4 +43,7 @@ type ErrorCode struct {
 	MinAmountIsNotExist                 string `code:"10036" msg:"최소 출금 금액이 설정되지 않았습니다. Operation Configuration에 문의하십시오!"`
 	OptionContractProfitRatioNotCorrect string `code:"10037" msg:"옵션 계약 수익률이 잘못되었습니다."`
 	ApplyBuySetupStatusIsNotExist       string `code:"10037" msg:"구독 통화가 아직 열리지 않았습니다."`
+	CurrencyTransactionIsExist          string `code:"10038" msg:"시스템은 일시적으로 통화의 거래를 변경하는 것을 허용하지 않습니다."`
+	LimitPriceErr                       string `code:"10039" msg:"제한 가격 매개변수 오류"`
+	EntrustNumErr                       string `code:"10039" msg:"주문 금액 매개변수 오류"`
 }

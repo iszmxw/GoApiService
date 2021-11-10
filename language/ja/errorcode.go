@@ -43,4 +43,7 @@ type ErrorCode struct {
 	MinAmountIsNotExist                 string `code:"10036" msg:"最小引き出し額は設定されていません。運用構成にお問い合わせください。"`
 	OptionContractProfitRatioNotCorrect string `code:"10037" msg:"オプション契約の収益率が正しくない"`
 	ApplyBuySetupStatusIsNotExist       string `code:"10037" msg:"サブスクリプション通貨はまだ開かれていません"`
+	CurrencyTransactionIsExist          string `code:"10038" msg:"システムは一時的に通貨での取引を変更することを許可しません"`
+	LimitPriceErr                       string `code:"10039" msg:"指値パラメータエラー"`
+	EntrustNumErr                       string `code:"10039" msg:"注文金額パラメータエラー"`
 }

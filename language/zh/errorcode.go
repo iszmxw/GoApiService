@@ -43,7 +43,7 @@ type ErrorCode struct {
 	MinAmountIsNotExist                 string `code:"10036" msg:"未設置最小提現金額，請聯繫運營配置！"`
 	OptionContractProfitRatioNotCorrect string `code:"10037" msg:"期權合約收益率不正確"`
 	ApplyBuySetupStatusIsNotExist       string `code:"10037" msg:"申購幣種暫未開啟"`
-	CurrencyTransactionIsExist          string `code:"10038" msg:"系统暂不允许改币种交易"`
-	LimitPriceErr                       string `code:"10039" msg:"限价参数错误"`
-	EntrustNumErr                       string `code:"10039" msg:"委托量参数错误"`
+	CurrencyTransactionIsExist          string `code:"10038" msg:"系統暫不允該改幣種交易"`
+	LimitPriceErr                       string `code:"10039" msg:"限價參數錯誤"`
+	EntrustNumErr                       string `code:"10039" msg:"委託量參數錯誤"`
 }

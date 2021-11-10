@@ -43,4 +43,7 @@ type ErrorCode struct {
 	MinAmountIsNotExist                 string `code:"10036" msg:"No se ha establecido un monto mínimo de retiro, comuníquese con Configuración de operación."`
 	OptionContractProfitRatioNotCorrect string `code:"10037" msg:"La tasa de retorno del contrato de opción es incorrecta"`
 	ApplyBuySetupStatusIsNotExist       string `code:"10037" msg:"La moneda de suscripción aún no se ha abierto"`
+	CurrencyTransactionIsExist          string `code:"10038" msg:"El sistema no permite temporalmente que se modifiquen las transacciones en la moneda."`
+	LimitPriceErr                       string `code:"10039" msg:"Error de parámetro de precio límite"`
+	EntrustNumErr                       string `code:"10039" msg:"Error de parámetro de importe de pedido"`
 }

@@ -185,6 +185,7 @@ func (h *PerpetualContractController) TradeHandler(c *gin.Context) {
 		return
 	}
 	if Currency.DecimalScale > 0 {
+		logger.Info(Currency.DecimalScale)
 		logger.Error(errors.New("自有币种不能进行交易"))
 		echo.Error(c, "CurrencyTransactionIsExist", "")
 		return

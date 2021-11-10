@@ -43,4 +43,7 @@ type ErrorCode struct {
 	MinAmountIsNotExist                 string `code:"10036" msg:"No minimum withdrawal amount has been set, please contact Operation Configuration!"`
 	OptionContractProfitRatioNotCorrect string `code:"10037" msg:"The option contract rate of return is incorrect"`
 	ApplyBuySetupStatusIsNotExist       string `code:"10037" msg:"The subscription currency has not been opened yet"`
+	CurrencyTransactionIsExist          string `code:"10038" msg:"The system temporarily does not allow transactions in the currency to be changed"`
+	LimitPriceErr                       string `code:"10039" msg:"Limit price parameter error"`
+	EntrustNumErr                       string `code:"10039" msg:"Order amount parameter error"`
 }
