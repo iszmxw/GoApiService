@@ -94,6 +94,11 @@ func (h *CurrencyCurrencyController) TransactionHandler(c *gin.Context) {
 		echo.Error(c, "CurrencyIsExist", "")
 		return
 	}
+	if Currency.DecimalScale > 0 {
+		logger.Error(errors.New("自有币种不能进行交易"))
+		echo.Error(c, "CurrencyTransactionIsExist", "")
+		return
+	}
 
 	addData.UserId = userId.(int)                                         // 用户id
 	addData.Email = userInfo.(map[string]interface{})["email"].(string)   // 邮箱

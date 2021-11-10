@@ -176,6 +176,11 @@ func (h *PerpetualContractController) TradeHandler(c *gin.Context) {
 		echo.Error(c, "CurrencyIsExist", "")
 		return
 	}
+	if Currency.DecimalScale > 0 {
+		logger.Error(errors.New("自有币种不能进行交易"))
+		echo.Error(c, "CurrencyTransactionIsExist", "")
+		return
+	}
 	// 期权合约交易手续费小于零
 	if Currency.FeePerpetualContract < 0 {
 		logger.Error(errors.New(fmt.Sprintf("永续合约交易手续费小于零: %v", Currency.FeePerpetualContract)))
