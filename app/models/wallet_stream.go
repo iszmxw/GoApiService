@@ -49,8 +49,14 @@ func (m *WalletStream) SetAddData(Way, Type, TypeDetail string, addData interfac
 			data.Email = addData.(CurrencyTransaction).Email
 			data.TradingPairId = Currency.TradingPairId
 			data.TradingPairName = Currency.TradingPairName
-			data.Amount = fmt.Sprintf("%v",addData.(CurrencyTransaction).OrderPrice) // 流转金额
-			data.AmountBefore = UsersWallet.Available         // 流转前的余额
+			// 订单方向：1-买入 2-卖出
+			if addData.(CurrencyTransaction).TransactionType == "1" {
+				data.Amount = fmt.Sprintf("%v", addData.(CurrencyTransaction).OrderPrice) // 流转金额
+			}
+			if addData.(CurrencyTransaction).TransactionType == "2" {
+				data.Amount = fmt.Sprintf("%v", addData.(CurrencyTransaction).EntrustNum) // 流转金额
+			}
+			data.AmountBefore = UsersWallet.Available // 流转前的余额
 			Amount, err := strconv.ParseFloat(data.Amount, 64)
 			if err != nil {
 				return nil, err

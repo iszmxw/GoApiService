@@ -200,7 +200,7 @@ func (h *CurrencyCurrencyController) TransactionHandler(c *gin.Context) {
 		addData.EntrustNum = fmt.Sprintf("%v", EntrustNum) // 委托量
 		// 挂单类型：1-限价 2-市价 类型计算
 		// 可用余额减去卖出货币
-		UpdateUsersWallet["available"] = UsersWallet2.Available - OrderPrice
+		UpdateUsersWallet["available"] = UsersWallet2.Available - EntrustNum
 		WalletStreamUsersWallet = UsersWallet2
 		// 订单方向：2-卖出 // 修改钱包余额 （交易扣减）
 		editError := DB.Model(models.UsersWallet{}).Where(where2).Updates(UpdateUsersWallet).Error
