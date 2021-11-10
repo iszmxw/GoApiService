@@ -136,12 +136,20 @@ func (h *PerpetualContractController) TradeHandler(c *gin.Context) {
 	addData.LimitPrice = params.LimitPrice     // 当前限价
 	// 保证金
 	var EnsureAmount float64 // 保证金
-	// todo::当前限价(限价的时候手输入，市价的时候，传入k线图的最高价，后期后台自动去火币网获取)
-	LimitPrice, err2 := strconv.ParseFloat(params.LimitPrice, 64)
 	// 委托量，委托（20%，50%，75%，100%）
 	EntrustNum, err1 := strconv.ParseFloat(params.EntrustNum, 64)
+	// todo::当前限价(限价的时候手输入，市价的时候，传入k线图的最高价，后期后台自动去火币网获取)
+	LimitPrice, err2 := strconv.ParseFloat(params.LimitPrice, 64)
 	Bails, err3 := strconv.ParseFloat(Bail, 64)
-	if err1 != nil || err2 != nil || err3 != nil {
+	if err1 != nil {
+		echo.Error(c, "EntrustNumErr", "")
+		return
+	}
+	if err2 != nil {
+		echo.Error(c, "LimitPriceErr", "")
+		return
+	}
+	if err3 != nil {
 		echo.Error(c, "Percentage", "")
 		return
 	}

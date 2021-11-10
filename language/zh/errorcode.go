@@ -44,4 +44,6 @@ type ErrorCode struct {
 	OptionContractProfitRatioNotCorrect string `code:"10037" msg:"期權合約收益率不正確"`
 	ApplyBuySetupStatusIsNotExist       string `code:"10037" msg:"申購幣種暫未開啟"`
 	CurrencyTransactionIsExist          string `code:"10038" msg:"系统暂不允许改币种交易"`
+	LimitPriceErr                       string `code:"10039" msg:"限价参数错误"`
+	EntrustNumErr                       string `code:"10039" msg:"委托量参数错误"`
 }
