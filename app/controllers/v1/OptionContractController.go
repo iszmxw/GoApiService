@@ -158,7 +158,7 @@ func (h *OptionContractController) TradeHandler(c *gin.Context) {
 		return
 	}
 	// 期权合约交易手续费小于零
-	if helpers.StringToInt(Currency.FeeOptionContract) < 0 {
+	if Currency.FeeOptionContract < 0 {
 		logger.Error(errors.New(fmt.Sprintf("期权合约交易手续费小于零: %v", Currency.FeeOptionContract)))
 		echo.Error(c, "FeeOptionContractIsError", "")
 		return
@@ -166,7 +166,7 @@ func (h *OptionContractController) TradeHandler(c *gin.Context) {
 	addData.CurrencyName = Currency.Name + "/" + Currency.TradingPairName // 币种名称 例如：BTC/USDT（币种/交易对）
 	addData.TradingPairId = helpers.IntToString(Currency.TradingPairId)   // 交易对ID
 	addData.TradingPairName = Currency.TradingPairName                    // 交易对名称
-	addData.HandleFee = Currency.FeeOptionContract                        // 期权合约交易手续费
+	addData.HandleFee = fmt.Sprintf("%v", Currency.FeeOptionContract)     // 期权合约交易手续费
 	// 查询用户钱包信息
 	where := cmap.New().Items()
 	where["user_id"] = userId
@@ -302,7 +302,7 @@ func (h *OptionContractController) LiquidationHandler(c *gin.Context) {
 		return
 	}
 
-	clinchPrice, err1 := huobi.Kline(result.KLineCode)
+	clinchPrice, err1 := huobi.Kline(result.KLineCode, "close")
 	Updates := cmap.New().Items()
 	Updates["clinch_price"] = clinchPrice // 成交价格
 	if err1 != nil {

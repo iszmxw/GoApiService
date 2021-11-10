@@ -5,8 +5,8 @@ type CurrencyTransaction struct {
 	TransactionType string `json:"transaction_type" form:"transaction_type" validate:"required"` // 订单方向：1-买入 2-卖出
 	OrderType       string `json:"order_type" form:"order_type" validate:"required,gte=1,lte=2"` // 挂单类型：1-限价 2-市价
 	LimitPrice      string `json:"limit_price" form:"limit_price"`                               // 当前限价
-	ClinchNum       string `json:"clinch_num" form:"clinch_num" validate:"required"`             // 成交量
-	EntrustNum      string `json:"entrust_num" form:"entrust_num" validate:"required"`           // 委托量，委托（20%，50%，75%，100%）
+	OrderPrice      string `json:"order_price" form:"order_price"`                               // 订单额
+	EntrustNum      string `json:"entrust_num" form:"entrust_num"`                               // 委托量，委托（20%，50%，75%，100%）
 }
 
 // CancelOrder 撤单

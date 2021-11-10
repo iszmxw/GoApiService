@@ -77,7 +77,7 @@ func UpdateResult(id string) {
 		return
 	}
 	logger.Info(fmt.Sprintf("k线图代码: %v", result.KLineCode))
-	clinchPrice, err1 := huobi.Kline(result.KLineCode)
+	clinchPrice, err1 := huobi.Kline(result.KLineCode, "close") // 获取本阶段收盘价
 	Updates := cmap.New().Items()
 	Updates["clinch_price"] = clinchPrice // 成交价格
 	if err1 != nil {

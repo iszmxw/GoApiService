@@ -177,7 +177,7 @@ func (h *PerpetualContractController) TradeHandler(c *gin.Context) {
 		return
 	}
 	// 期权合约交易手续费小于零
-	if helpers.StringToInt(Currency.FeePerpetualContract) < 0 {
+	if Currency.FeePerpetualContract < 0 {
 		logger.Error(errors.New(fmt.Sprintf("永续合约交易手续费小于零: %v", Currency.FeePerpetualContract)))
 		echo.Error(c, "FeePerpetualContractIsError", "")
 		return
@@ -186,7 +186,7 @@ func (h *PerpetualContractController) TradeHandler(c *gin.Context) {
 	addData.KLineCode = Currency.KLineCode                                // K线图代码
 	addData.TradingPairId = Currency.TradingPairId                        // 交易对id
 	addData.TradingPairName = Currency.TradingPairName                    // 交易对名称
-	addData.HandleFee = Currency.FeePerpetualContract                     // 手续费百分比
+	addData.HandleFee = fmt.Sprintf("%v", Currency.FeePerpetualContract)  // 手续费百分比
 	// 查询用户钱包信息
 	where := cmap.New().Items()
 	where["user_id"] = userId

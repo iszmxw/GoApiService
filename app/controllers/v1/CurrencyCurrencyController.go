@@ -10,6 +10,7 @@ import (
 	"goapi/app/response"
 	"goapi/pkg/echo"
 	"goapi/pkg/helpers"
+	"goapi/pkg/huobi"
 	"goapi/pkg/logger"
 	"goapi/pkg/mysql"
 	"goapi/pkg/validator"
@@ -66,24 +67,21 @@ func (h *CurrencyCurrencyController) TransactionHandler(c *gin.Context) {
 	userId, _ := c.Get("user_id")
 	var addData models.CurrencyTransaction
 	addData.Status = "0" // 状态：0 交易中 1 已完成 2 已撤单
-	addData.OrderNumber = helpers.OrderId("CC")
-	addData.Email = userInfo.(map[string]interface{})["email"].(string)
 	CurrencyId, err := strconv.Atoi(params.CurrencyId)
 	if err != nil {
 		logger.Error(errors.New("传输的币种id转义失败"))
 		echo.Error(c, "ValidatorError", err.Error())
 		return
 	}
-	addData.CurrencyId = CurrencyId // 币种
-	addData.UserId = userId.(int)   // 用户id
-	addData.EntrustNum = params.EntrustNum           // 委托量
-	addData.LimitPrice = params.LimitPrice           // 当前限价
-	addData.ClinchNum = params.ClinchNum             // 成交量
-	addData.OrderType = params.OrderType             // 挂单类型：1-限价 2-市价
-	addData.TransactionType = params.TransactionType // 订单方向：1-买入 2-卖出
+	LimitPrice, LimitPriceErr := strconv.ParseFloat(params.LimitPrice, 64)
+	OrderPrice, OrderPriceErr := strconv.ParseFloat(params.OrderPrice, 64)
+	EntrustNum, EntrustNumErr := strconv.ParseFloat(params.EntrustNum, 64)
+	if OrderPriceErr != nil || LimitPriceErr != nil || EntrustNumErr != nil {
+		echo.Error(c, "ValidatorError", err.Error())
+		return
+	}
 	// 开启数据库
 	DB := mysql.DB.Debug().Begin()
-
 	// 查询交易币种信息
 	var Currency response.Currency
 	DB.Model(models.Currency{}).
@@ -96,7 +94,15 @@ func (h *CurrencyCurrencyController) TransactionHandler(c *gin.Context) {
 		echo.Error(c, "CurrencyIsExist", "")
 		return
 	}
+
+	addData.UserId = userId.(int)                                         // 用户id
+	addData.Email = userInfo.(map[string]interface{})["email"].(string)   // 邮箱
+	addData.OrderNumber = helpers.OrderId("CC")                           // 订单号
+	addData.CurrencyId = CurrencyId                                       // 币种
 	addData.CurrencyName = Currency.Name + "/" + Currency.TradingPairName // 币种名称 例如：BTC/USDT（币种/交易对）
+	addData.OrderType = params.OrderType                                  // 挂单类型：1-限价 2-市价
+	addData.TransactionType = params.TransactionType                      // 订单方向：1-买入 2-卖出
+	addData.LimitPrice = params.LimitPrice                                // 当前限价
 
 	// 1、查询用户钱包对的钱包信息
 	where := cmap.New().Items()
@@ -133,39 +139,36 @@ func (h *CurrencyCurrencyController) TransactionHandler(c *gin.Context) {
 		return
 	}
 
-	// 限价百分比算法：（当前可用余额*百分比）/当前限价=买入货币
-
-	// 挂单类型：1-限价 2-市价 类型计算
-	if len(params.LimitPrice) <= 0 {
-		echo.Error(c, "LimitPrice", "")
-		return
-	}
-
-	var buyNum float64
 	var WalletStreamUsersWallet response.UsersWallet
 	UpdateUsersWallet := cmap.New().Items()
 	// 订单方向：1-买入
 	if params.TransactionType == "1" {
-		// todo::当前限价(限价的时候手输入，市价的时候，传入k线图的最高价，后期后台自动去火币网获取)
-		LimitPrice, err2 := strconv.ParseFloat(params.LimitPrice, 64)
-		// 成交量
-		Percentage, err1 := strconv.ParseFloat(params.ClinchNum, 64)
-		if err1 != nil || err2 != nil {
-			echo.Error(c, "Percentage", "")
-			return
-		}
-		// 买入消费货币=市价（限价）*卖出数量
-		logger.Info(fmt.Sprintf("市价/限价: %v * 卖出数量: %v \n", LimitPrice, Percentage))
-		buyNum = LimitPrice * Percentage
 		// 消费的金额不能大于钱包余额
-		if buyNum > UsersWallet.Available {
+		if OrderPrice > UsersWallet.Available {
 			echo.Error(c, "InsufficientBalance", "")
 			return
 		}
-		addData.Price = fmt.Sprintf("%.8f", buyNum)
+		if params.OrderType == "2" { // 挂单类型：1-限价 2-市价
+			// 从K线图获取市价
+			kline, klineErr := huobi.Kline(Currency.KLineCode, "low") // 买入的时候取 low
+			if klineErr != nil {
+				echo.Error(c, "ValidatorError", "")
+				return
+			}
+			LimitPrice = kline
+		}
+		if LimitPrice <= 0 {
+			DB.Rollback()
+			echo.Error(c, "LimitPrice", "")
+			return
+		}
+		addData.OrderPrice = OrderPrice // 订单额
+		// 委托量 = 订单金额/市价
+		EntrustNum = OrderPrice / LimitPrice
+		addData.EntrustNum = fmt.Sprintf("%v", EntrustNum)
 		// 挂单类型：1-限价 2-市价 类型计算
 		// 可用余额减去消费货币
-		UpdateUsersWallet["available"] = UsersWallet.Available - buyNum
+		UpdateUsersWallet["available"] = UsersWallet.Available - OrderPrice
 		WalletStreamUsersWallet = UsersWallet
 		// 订单方向：1-买入 // 修改钱包余额 （交易扣减）
 		editError := DB.Model(models.UsersWallet{}).Where(where).Updates(UpdateUsersWallet).Error
@@ -179,21 +182,25 @@ func (h *CurrencyCurrencyController) TransactionHandler(c *gin.Context) {
 
 	// 订单方向：2-卖出
 	if params.TransactionType == "2" {
-		// todo::当前限价(限价的时候手输入，市价的时候，传入k线图的最高价，后期后台自动去火币网获取)
-		LimitPrice, err2 := strconv.ParseFloat(params.LimitPrice, 64)
-		// 成交量
-		Percentage, err1 := strconv.ParseFloat(params.ClinchNum, 64)
-		if err1 != nil || err2 != nil {
-			echo.Error(c, "Percentage", "")
+		if params.OrderType == "2" { // 挂单类型：1-限价 2-市价
+			// 从K线图获取市价
+			kline, klineErr := huobi.Kline(Currency.KLineCode, "high") // 买入的时候取 low
+			if klineErr != nil {
+				echo.Error(c, "ValidatorError", "")
+				return
+			}
+			LimitPrice = kline
+		}
+		if LimitPrice <= 0 {
+			DB.Rollback()
+			echo.Error(c, "LimitPrice", "")
 			return
 		}
-		// 卖出所得货币=市价（限价）*卖出数量
-		fmt.Printf("市价/限价: %v * 卖出数量: %v \n", LimitPrice, Percentage)
-		buyNum = LimitPrice * Percentage
-		addData.Price = fmt.Sprintf("%.8f", buyNum)
+		addData.OrderPrice = EntrustNum * LimitPrice       // 委托量 * 当前市价
+		addData.EntrustNum = fmt.Sprintf("%v", EntrustNum) // 委托量
 		// 挂单类型：1-限价 2-市价 类型计算
 		// 可用余额减去卖出货币
-		UpdateUsersWallet["available"] = UsersWallet2.Available - Percentage
+		UpdateUsersWallet["available"] = UsersWallet2.Available - OrderPrice
 		WalletStreamUsersWallet = UsersWallet2
 		// 订单方向：2-卖出 // 修改钱包余额 （交易扣减）
 		editError := DB.Model(models.UsersWallet{}).Where(where2).Updates(UpdateUsersWallet).Error
@@ -204,7 +211,7 @@ func (h *CurrencyCurrencyController) TransactionHandler(c *gin.Context) {
 			return
 		}
 	}
-	if len(addData.Price) <= 0 {
+	if addData.OrderPrice <= 0 {
 		logger.Error(errors.New("买入价格计算错误"))
 		echo.Error(c, "AddError", "")
 		return
@@ -283,7 +290,7 @@ func (h *CurrencyCurrencyController) CancelOrderHandler(c *gin.Context) {
 			whereUsersWallet := map[string]interface{}{"user_id": userId, "type": "1", "trading_pair_id": CurrencyTransaction.TradingPairId}
 			DB.Model(models.UsersWallet{}).Where(whereUsersWallet).Find(&UsersWallet)
 			// 退还消费的金额到账户
-			UsersWallet.Available = UsersWallet.Available + CurrencyTransaction.Price
+			UsersWallet.Available = UsersWallet.Available + CurrencyTransaction.OrderPrice
 			uErr := DB.Model(models.UsersWallet{}).Where(whereUsersWallet).Update("available", UsersWallet.Available).Error
 			if uErr != nil {
 				fmt.Println(uErr.Error())

@@ -43,12 +43,13 @@ func (h *AssetsStreamController) AssetsTypeHandler(c *gin.Context) {
 		return
 	}
 	userId, _ := c.Get("user_id")
-	where := cmap.New().Items()
-	where["user_id"] = userId
-	where["trading_pair_id"] = params.TradingPairId
 	var result response.UsersWallet
 	DB := mysql.DB.Debug()
-	DB.Model(models.UsersWallet{}).Where(where).Find(&result)
+	DB.Model(models.UsersWallet{}).
+		Where("type", params.Type).                     // 钱包类型：1现货 2合约
+		Where("user_id", userId).                       // 用户id
+		Where("trading_pair_id", params.TradingPairId). // 钱包对id
+		Find(&result)
 	if result.Id <= 0 {
 		echo.Error(c, "CurrencyIsExist", "")
 		return

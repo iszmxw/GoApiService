@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"goapi/app/response"
 	"goapi/pkg/helpers"
 	"gorm.io/gorm"
@@ -41,7 +42,7 @@ func (m *AssetsStream) SetAddData(OrderType int, addData interface{}, Currency r
 		data.OrderId = addData.(CurrencyTransaction).Id
 		data.OrderNum = addData.(CurrencyTransaction).OrderNumber
 		data.OrderTime = addData.(CurrencyTransaction).CreatedAt
-		data.OrderPrice = addData.(CurrencyTransaction).Price
+		data.OrderPrice = fmt.Sprintf("%v", addData.(CurrencyTransaction).OrderPrice)
 		data.Status = addData.(CurrencyTransaction).Status
 	}
 
