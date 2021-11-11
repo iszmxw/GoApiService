@@ -35,6 +35,7 @@ func (h *TradeController) SysTypeHandler(c *gin.Context) {
 			arr := cmap.New().Items()
 			switch val.Fields {
 			case "omni_wallet_address":
+				arr["name"] = "OMNI"
 				arr["OMNI"] = val.Value
 				OmniImg, OmniImgerr := qrcode.Encode(val.Value, qrcode.Medium, 256)
 				if OmniImgerr != nil {
@@ -45,6 +46,7 @@ func (h *TradeController) SysTypeHandler(c *gin.Context) {
 				arr["OMNI_IMG"] = Img
 				break
 			case "erc20_wallet_address":
+				arr["name"] = "ERC20"
 				arr["ERC20"] = val.Value
 				ecr20Img, ecr20Imgerr := qrcode.Encode(val.Value, qrcode.Medium, 256)
 				if ecr20Imgerr != nil {
@@ -55,6 +57,7 @@ func (h *TradeController) SysTypeHandler(c *gin.Context) {
 				arr["ERC20_IMG"] = Img
 				break
 			case "trc20_wallet_address":
+				arr["name"] = "TRC20"
 				arr["TRC20"] = val.Value
 				tcr20Img, tcr20Imgerr := qrcode.Encode(val.Value, qrcode.Medium, 256)
 				if tcr20Imgerr != nil {
