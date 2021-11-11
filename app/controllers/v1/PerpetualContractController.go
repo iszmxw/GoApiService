@@ -81,8 +81,15 @@ func (h *PerpetualContractController) ContractListHandler(c *gin.Context) {
 
 // TradeHandler 永续合约-限价/市价
 func (h *PerpetualContractController) TradeHandler(c *gin.Context) {
-	var params requests.PerpetualContractTransaction // 绑定接收的 json 数据到结构体中
-	var PerpetualContract response.PerpetualContract
+	var (
+		params            requests.PerpetualContractTransaction // 绑定接收的 json 数据到结构体中
+		PerpetualContract response.PerpetualContract            // 查询永续合约信息
+		Currency          response.Currency                     // 查询交易币种信息
+		UsersWallet       response.UsersWallet                  // 查询钱包信息
+		addData           models.PerpetualContractTransaction   // 添加永续合约交易数据
+		Bail              string                                // 保证金占用比例Bail
+		EnsureAmount      float64                               // 保证金
+	)
 	_ = c.Bind(&params)
 	// 数据验证
 	vErr := validator.Validate.Struct(params)
@@ -104,7 +111,6 @@ func (h *PerpetualContractController) TradeHandler(c *gin.Context) {
 		echo.Error(c, "ContractIsNotCorrect", "")
 		return
 	}
-	var Bail string
 	// 通过倍数值获取相对应的保证金占比值
 	for key, val := range arrayMultiple {
 		if params.Multiple == val {
@@ -118,41 +124,40 @@ func (h *PerpetualContractController) TradeHandler(c *gin.Context) {
 	}
 	logger.Info(fmt.Sprintf("获取保证金占用比例Bail:%v", Bail))
 	// 根据当前交易币种查询交易的合约信息
+
+	// 接收的字符串参数转换float64处理
+	EntrustNum, EntrustNumErr := strconv.ParseFloat(params.EntrustNum, 64) // 委托量，委托（20%，50%，75%，100%）
+	LimitPrice, LimitPriceErr := strconv.ParseFloat(params.LimitPrice, 64) // todo::当前限价(限价的时候手输入，市价的时候，传入k线图的最高价，后期后台自动去火币网获取)
+	Bails, BailsErr := strconv.ParseFloat(Bail, 64)                        // 保证金占比值
+	CurrencyId, CurrencyIdErr := strconv.Atoi(params.CurrencyId)           // 币种id
+	if EntrustNumErr != nil {
+		echo.Error(c, "EntrustNumErr", "")
+		return
+	}
+	if LimitPriceErr != nil {
+		echo.Error(c, "LimitPriceErr", "")
+		return
+	}
+	if BailsErr != nil {
+		echo.Error(c, "Percentage", "")
+		return
+	}
+	if CurrencyIdErr != nil {
+		echo.Error(c, "ValidatorError", CurrencyIdErr.Error())
+		return
+	}
+
 	userInfo, _ := c.Get("user")
 	userId, _ := c.Get("user_id")
-	var addData models.PerpetualContractTransaction
 	addData.Status = "0"                        // 状态：0 交易中 1 已完成 2 已撤单
 	addData.OrderNumber = helpers.OrderId("PC") // 订单号
 	addData.Email = userInfo.(map[string]interface{})["email"].(string)
-	CurrencyId, err := strconv.Atoi(params.CurrencyId)
-	if err != nil {
-		echo.Error(c, "ValidatorError", err.Error())
-		return
-	}
 	addData.CurrencyId = CurrencyId            // 币种
 	addData.UserId = userId.(int)              // 用户id
 	addData.EntrustNum = params.EntrustNum     // 委托量
 	addData.EntrustPrice = params.EntrustPrice // 委托价格
 	addData.LimitPrice = params.LimitPrice     // 当前限价
 	// 保证金
-	var EnsureAmount float64 // 保证金
-	// 委托量，委托（20%，50%，75%，100%）
-	EntrustNum, err1 := strconv.ParseFloat(params.EntrustNum, 64)
-	// todo::当前限价(限价的时候手输入，市价的时候，传入k线图的最高价，后期后台自动去火币网获取)
-	LimitPrice, err2 := strconv.ParseFloat(params.LimitPrice, 64)
-	Bails, err3 := strconv.ParseFloat(Bail, 64)
-	if err1 != nil {
-		echo.Error(c, "EntrustNumErr", "")
-		return
-	}
-	if err2 != nil {
-		echo.Error(c, "LimitPriceErr", "")
-		return
-	}
-	if err3 != nil {
-		echo.Error(c, "Percentage", "")
-		return
-	}
 	EnsureAmount = EntrustNum * LimitPrice * Bails
 	logger.Info(fmt.Sprintf("最终保证金：%v", EnsureAmount))
 	addData.EnsureAmount = fmt.Sprintf("%.8f", EnsureAmount) // 保证金
@@ -161,9 +166,9 @@ func (h *PerpetualContractController) TradeHandler(c *gin.Context) {
 	addData.TransactionType = params.TransactionType         // 交易类型：1-开多 2-开空
 
 	// 卖出所得货币=市价（限价）*卖出数量
-	fmt.Printf("市价/限价: %v * 卖出数量: %v \n", LimitPrice, EntrustNum)
-	buyNum := LimitPrice * EntrustNum
-	addData.Price = fmt.Sprintf("%.8f", buyNum)
+	logger.Info(fmt.Sprintf("市价/限价: %v * 卖出数量: %v \n", LimitPrice, EntrustNum))
+	Price := LimitPrice * EntrustNum
+	addData.Price = fmt.Sprintf("%.8f", Price)
 	if len(addData.Price) <= 0 {
 		logger.Error(errors.New("交易金额必须大于零"))
 		echo.Error(c, "AddError", "")
@@ -172,9 +177,6 @@ func (h *PerpetualContractController) TradeHandler(c *gin.Context) {
 
 	// 开启数据库
 	DB := mysql.DB.Debug().Begin()
-
-	// 查询交易币种信息
-	var Currency response.Currency
 	DB.Model(models.Currency{}).
 		Where(models.Prefix("$_currency.id"), params.CurrencyId).
 		Select(models.Prefix("$_currency.*,$_trading_pair.name as trading_pair_name")).
@@ -206,10 +208,7 @@ func (h *PerpetualContractController) TradeHandler(c *gin.Context) {
 	where["user_id"] = userId
 	where["type"] = "2" // 钱包类型：1现货 2合约
 	where["trading_pair_id"] = Currency.TradingPairId
-	var UsersWallet response.UsersWallet
 	DB.Model(models.UsersWallet{}).Where(where).Find(&UsersWallet)
-	// 用户可用余额不足
-	Price, _ := strconv.ParseFloat(addData.Price, 64)
 	if UsersWallet.Status == 1 { // 0正常 1锁定
 		DB.Rollback()
 		echo.Error(c, "UsersWalletLock", "")
