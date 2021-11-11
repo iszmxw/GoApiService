@@ -17,6 +17,7 @@ import (
 	"goapi/pkg/redis"
 	"goapi/pkg/validator"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -163,6 +164,14 @@ func (h *OptionContractController) TradeHandler(c *gin.Context) {
 		Find(&Currency)
 	if Currency.Id <= 0 {
 		echo.Error(c, "CurrencyIsExist", "")
+		return
+	}
+	arrayType := strings.Split(Currency.Type, ",")
+	logger.Info(arrayType)
+	// 该函数会打乱数组原有的顺序
+	if !helpers.InArray("3", arrayType) {
+		DB.Rollback()
+		echo.Error(c, "CurrencyTypeIsNotAllowed", "")
 		return
 	}
 	if Currency.DecimalScale > 0 {

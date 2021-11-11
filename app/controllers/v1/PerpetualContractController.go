@@ -186,6 +186,14 @@ func (h *PerpetualContractController) TradeHandler(c *gin.Context) {
 		echo.Error(c, "CurrencyIsExist", "")
 		return
 	}
+	arrayType := strings.Split(Currency.Type, ",")
+	logger.Info(arrayType)
+	// 该函数会打乱数组原有的顺序
+	if !helpers.InArray("2", arrayType) {
+		DB.Rollback()
+		echo.Error(c, "CurrencyTypeIsNotAllowed", "")
+		return
+	}
 	if Currency.DecimalScale > 0 {
 		logger.Info(Currency.DecimalScale)
 		logger.Error(errors.New("自有币种不能进行交易"))

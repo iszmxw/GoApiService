@@ -46,4 +46,5 @@ type ErrorCode struct {
 	CurrencyTransactionIsExist          string `code:"10038" msg:"系統暫不允該改幣種交易"`
 	LimitPriceErr                       string `code:"10039" msg:"限價參數錯誤"`
 	EntrustNumErr                       string `code:"10039" msg:"委託量參數錯誤"`
+	CurrencyTypeIsNotAllowed            string `code:"10040" msg:"該交易對暫不允許該類型交易，如有需要請聯繫運營"`
 }

@@ -15,6 +15,7 @@ import (
 	"goapi/pkg/mysql"
 	"goapi/pkg/validator"
 	"strconv"
+	"strings"
 )
 
 type CurrencyCurrencyController struct {
@@ -112,6 +113,14 @@ func (h *CurrencyCurrencyController) TransactionHandler(c *gin.Context) {
 	if Currency.DecimalScale > 0 {
 		logger.Error(errors.New("自有币种不能进行交易"))
 		echo.Error(c, "CurrencyTransactionIsExist", "")
+		return
+	}
+	arrayType := strings.Split(Currency.Type,",")
+	logger.Info(arrayType)
+	// 该函数会打乱数组原有的顺序
+	if !helpers.InArray("1", arrayType) {
+		DB.Rollback()
+		echo.Error(c, "CurrencyTypeIsNotAllowed", "")
 		return
 	}
 	addData.UserId = userId.(int)                                         // 用户id
