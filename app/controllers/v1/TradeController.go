@@ -36,36 +36,36 @@ func (h *TradeController) SysTypeHandler(c *gin.Context) {
 			switch val.Fields {
 			case "omni_wallet_address":
 				arr["name"] = "OMNI"
-				arr["OMNI"] = val.Value
+				arr["address"] = val.Value
 				OmniImg, OmniImgerr := qrcode.Encode(val.Value, qrcode.Medium, 256)
 				if OmniImgerr != nil {
 					Img = ""
 				} else {
 					Img = "data:image/png;base64," + base64.StdEncoding.EncodeToString(OmniImg)
 				}
-				arr["OMNI_IMG"] = Img
+				arr["img"] = Img
 				break
 			case "erc20_wallet_address":
 				arr["name"] = "ERC20"
-				arr["ERC20"] = val.Value
+				arr["address"] = val.Value
 				ecr20Img, ecr20Imgerr := qrcode.Encode(val.Value, qrcode.Medium, 256)
 				if ecr20Imgerr != nil {
 					Img = ""
 				} else {
 					Img = "data:image/png;base64," + base64.StdEncoding.EncodeToString(ecr20Img)
 				}
-				arr["ERC20_IMG"] = Img
+				arr["img"] = Img
 				break
 			case "trc20_wallet_address":
 				arr["name"] = "TRC20"
-				arr["TRC20"] = val.Value
+				arr["address"] = val.Value
 				tcr20Img, tcr20Imgerr := qrcode.Encode(val.Value, qrcode.Medium, 256)
 				if tcr20Imgerr != nil {
 					Img = ""
 				} else {
 					Img = "data:image/png;base64," + base64.StdEncoding.EncodeToString(tcr20Img)
 				}
-				arr["TRC20_IMG"] = Img
+				arr["img"] = Img
 				break
 			}
 			result = append(result, arr)
@@ -254,6 +254,22 @@ func (h *TradeController) WalletAddressListHandler(c *gin.Context) {
 	var result []models.WalletAddress
 	userId, _ := c.Get("user_id")
 	mysql.DB.Debug().Model(models.WalletAddress{}).Where("user_id", userId).Find(&result)
+	if len(result) > 0 {
+		for k, v := range result {
+			switch v.Pact {
+			// 协议： 1-OMNI 2-ERC20 3-TRC20
+			case "1":
+				result[k].Pact = "OMNI"
+				break
+			case "2":
+				result[k].Pact = "ERC20"
+				break
+			case "3":
+				result[k].Pact = "TRC20"
+				break
+			}
+		}
+	}
 	echo.Success(c, result, "", "")
 }
 
