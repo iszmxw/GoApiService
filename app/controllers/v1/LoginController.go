@@ -138,7 +138,14 @@ func (h *LoginController) SendEmailRegisterHandler(c *gin.Context) {
 // VerifyRegisterHandler 验证注册
 func (h *LoginController) VerifyRegisterHandler(c *gin.Context) {
 	// 初始化数据模型结构体
-	var params requests.UserRegister
+	var (
+		params         requests.UserRegister  // 接收请求参数
+		GlobalsTypes   response.GlobalsTypes  // 查询系统配置参数
+		TradingPair    []response.TradingPair // 查询系统交易对
+		UsersWalletArr []models.UsersWallet   // 收集钱包信息
+		UsersWallet    models.UsersWallet     // 收集钱包信息
+		initShareCode  int                    // 初始化邀请码
+	)
 	parentUser := new(response.User)
 	_ = c.Bind(&params)
 	// 数据验证
@@ -166,8 +173,6 @@ func (h *LoginController) VerifyRegisterHandler(c *gin.Context) {
 		echo.Error(c, "UserIsExist", "")
 		return
 	}
-
-	var GlobalsTypes response.GlobalsTypes
 	mysql.DB.Model(models.Globals{}).Where(map[string]interface{}{"fields": "invitation_code"}).Find(&GlobalsTypes)
 	if GlobalsTypes.Id <= 0 {
 		logger.Info("邀请码开关未设置")
@@ -234,7 +239,6 @@ func (h *LoginController) VerifyRegisterHandler(c *gin.Context) {
 	UserCode := new(response.User)
 	DB.Model(models.User{}).Where(map[string]interface{}{"email": params.Email}).Find(&UserCode)
 	if len(UserCode.ShareCode) <= 0 {
-		var initShareCode int
 		// 邀请码不存在，初始化邀请码
 		maxShareCode := new(response.User)
 		// 查找系统最大的邀请码
@@ -262,11 +266,8 @@ func (h *LoginController) VerifyRegisterHandler(c *gin.Context) {
 	}
 	// 检测邀请码信息，初始化一系列
 
-	var TradingPair []response.TradingPair
 	DB.Model(models.TradingPair{}).Find(&TradingPair)
 	// 初始化钱包数据
-	var UsersWalletArr []models.UsersWallet
-	var UsersWallet models.UsersWallet
 	Type := map[int]int{1: 1, 2: 2}
 	if len(TradingPair) <= 0 {
 		DB.Rollback()
