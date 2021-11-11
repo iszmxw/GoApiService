@@ -11,6 +11,7 @@ import (
 	"goapi/pkg/agent_dividend"
 	"goapi/pkg/echo"
 	"goapi/pkg/helpers"
+	"goapi/pkg/huobi"
 	"goapi/pkg/logger"
 	"goapi/pkg/mysql"
 	"goapi/pkg/validator"
@@ -309,7 +310,15 @@ func (h *PerpetualContractController) CancelOrderHandler(c *gin.Context) {
 
 // LiquidationHandler 永续合约-平仓
 func (h *PerpetualContractController) LiquidationHandler(c *gin.Context) {
-	var params requests.Liquidation
+	var (
+		params                       requests.Liquidation                  // 接收永续合约平仓
+		PerpetualContractTransaction response.PerpetualContractTransaction // 永续合约交易信息
+		UsersWallet                  response.UsersWallet                  // 钱包列表
+		data                         models.WalletStream                   // 钱包流水
+		UserInfo                     response.User                         // 查询用户信息
+		arr                          agent_dividend.Params                 // 代理信息
+		income                       float64                               // 最终收益
+	)
 	_ = c.Bind(&params) // 数据验证
 	vErr := validator.Validate.Struct(params)
 	if vErr != nil {
@@ -319,7 +328,6 @@ func (h *PerpetualContractController) LiquidationHandler(c *gin.Context) {
 	}
 	userInfo, _ := c.Get("user")
 	userId, _ := c.Get("user_id")
-	var PerpetualContractTransaction response.PerpetualContractTransaction
 	where := cmap.New().Items()
 	where["email"] = userInfo.(map[string]interface{})["email"]
 	where["id"] = params.Id
@@ -340,13 +348,19 @@ func (h *PerpetualContractController) LiquidationHandler(c *gin.Context) {
 	whereWallet["user_id"] = PerpetualContractTransaction.UserId
 	whereWallet["trading_pair_id"] = PerpetualContractTransaction.TradingPairId
 	whereWallet["type"] = "2" // 钱包类型：1现货 2合约
-	var UsersWallet response.UsersWallet
 	DB.Model(models.UsersWallet{}).Where(whereWallet).Find(&UsersWallet)
 	// 用户可用余额不足
 	if UsersWallet.Available < 0 || UsersWallet.Id <= 0 {
 		logger.Error(errors.New(fmt.Sprintf("UsersWallet.Available: %v < 0 || UsersWallet.Id: %v <= 0", UsersWallet.Available, UsersWallet.Id)))
 		DB.Rollback()
 		echo.Error(c, "InsufficientBalance", "")
+		return
+	}
+
+	Liquidation, LiquidationErr := huobi.Kline(PerpetualContractTransaction.KLineCode, "close")
+	if LiquidationErr != nil {
+		DB.Rollback()
+		echo.Error(c, "OperationFailed", "")
 		return
 	}
 
@@ -360,25 +374,24 @@ func (h *PerpetualContractController) LiquidationHandler(c *gin.Context) {
 	*/
 	// 平仓时候的k线图，前端传递过来
 	// 最终收益 = k线图收盘价 - 委托价格 + 保证金 - 手续费
-	var income float64
-	if params.Liquidation < PerpetualContractTransaction.EntrustPrice {
+	if Liquidation < PerpetualContractTransaction.EntrustPrice {
 		// 亏损情况
 		income = PerpetualContractTransaction.EnsureAmount - (PerpetualContractTransaction.EnsureAmount * PerpetualContractTransaction.HandleFee / 100)
 		tips := fmt.Sprintf("最终收益：params.Liquidation - PerpetualContractTransaction.EntrustPrice + PerpetualContractTransaction.EnsureAmount - (PerpetualContractTransaction.EnsureAmount * PerpetualContractTransaction.HandleFee / 100) = income")
 		// income最终收益：55499.23 - 55499.01 + 20 - (20 * 0.05 / 100) = 20.210000000001163
-		tips += fmt.Sprintf("最终收益：%v - %v + %v - (%v * %v / 100) = %v", params.Liquidation, PerpetualContractTransaction.EntrustPrice, PerpetualContractTransaction.EnsureAmount, PerpetualContractTransaction.EnsureAmount, PerpetualContractTransaction.HandleFee, income)
+		tips += fmt.Sprintf("最终收益：%v - %v + %v - (%v * %v / 100) = %v", Liquidation, PerpetualContractTransaction.EntrustPrice, PerpetualContractTransaction.EnsureAmount, PerpetualContractTransaction.EnsureAmount, PerpetualContractTransaction.HandleFee, income)
 		fmt.Println(tips)
 	} else {
 		// 盈利情况
-		income = params.Liquidation - PerpetualContractTransaction.EntrustPrice + PerpetualContractTransaction.EnsureAmount - (PerpetualContractTransaction.EnsureAmount * PerpetualContractTransaction.HandleFee / 100)
+		income = Liquidation - PerpetualContractTransaction.EntrustPrice + PerpetualContractTransaction.EnsureAmount - (PerpetualContractTransaction.EnsureAmount * PerpetualContractTransaction.HandleFee / 100)
 	}
 	fmt.Println("k线图代码：", PerpetualContractTransaction.KLineCode)
 	fmt.Println("最终盈利：", income)
 	//clinchPrice, err1 := huobi.Kline(PerpetualContractTransaction.KLineCode)
 	Updates := cmap.New().Items()
-	Updates["income"] = income                   // 最终收益
-	Updates["status"] = "1"                      // 确认状态
-	Updates["clinch_price"] = params.Liquidation // 成交价格
+	Updates["income"] = income            // 最终收益
+	Updates["status"] = "1"               // 确认状态
+	Updates["clinch_price"] = Liquidation // 成交价格
 	err2 := DB.Model(models.PerpetualContractTransaction{}).Where(where).Updates(Updates).Error
 	if err2 != nil {
 		logger.Error(errors.New("平仓失败"))
@@ -404,7 +417,6 @@ func (h *PerpetualContractController) LiquidationHandler(c *gin.Context) {
 	// 修改钱包余额
 
 	// 创建钱包流水
-	var data models.WalletStream
 	data.Way = "1"                                                      // 流转方式 1 收入 2 支出
 	data.Type = "2"                                                     // 流转类型 0 未知 1 充值 2 提现 3 划转 4 快捷买币 5 空投 6 现货 7 合约 8 期权 9 手续费
 	data.TypeDetail = "10"                                              // 流转详细类型 0 未知 1 USDT充值 2银行卡充值 3现货划转合约 4合约划转现货 5提现 6空投支出 7空投收入 8现货支出 9现货收入 10合约支出 11合约收入 12期权支出 13期权收入
@@ -425,10 +437,8 @@ func (h *PerpetualContractController) LiquidationHandler(c *gin.Context) {
 	// 创建钱包流水
 
 	// 检测分发代理分润
-	var UserInfo response.User
 	DB.Model(models.User{}).Where("id", userId).Find(&UserInfo) // 查询用户信息
 	if UserInfo.ParentId > 0 {                                  // parentId 上级代理id
-		var arr agent_dividend.Params
 		arr.UserId = UserInfo.ParentId                                     // 用户id
 		arr.Email = UserInfo.Email                                         // 用户邮箱
 		arr.WalletType = 2                                                 // 钱包类型：1现货 2合约
