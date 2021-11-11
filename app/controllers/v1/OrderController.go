@@ -18,46 +18,49 @@ type OrderController struct {
 
 // TypeHandler 流水类型
 func (h *OrderController) TypeHandler(c *gin.Context) {
-	rdata := cmap.New().Items()
-	var arrayData []map[string]interface{}
+	type Rdata struct {
+		Id   int    `json:"id"`
+		Name string `json:"name"`
+	}
+	var arr []Rdata
 	// 流转类型 0 未知 1 充值 2 提现 3 划转 4 快捷买币 5 空投 6 现货 7 合约 8 期权 9 手续费
-	rdata["id"] = "1"
-	rdata["name"] = "充值"
-	arrayData[1] = rdata
-
-	rdata["id"] = "2"
-	rdata["name"] = "提现"
-	arrayData[2] = rdata
-
-	rdata["id"] = "3"
-	rdata["name"] = "划转"
-	arrayData[3] = rdata
-
-	rdata["id"] = "4"
-	rdata["name"] = "快捷买币"
-	arrayData[4] = rdata
-
-	rdata["id"] = "5"
-	rdata["name"] = "空投"
-	arrayData[5] = rdata
-
-	rdata["id"] = "6"
-	rdata["name"] = "现货"
-	arrayData[6] = rdata
-
-	rdata["id"] = "7"
-	rdata["name"] = "合约"
-	arrayData[7] = rdata
-
-	rdata["id"] = "8"
-	rdata["name"] = "期权"
-	arrayData[8] = rdata
-
-	rdata["id"] = "9"
-	rdata["name"] = "手续费"
-	arrayData[9] = rdata
-
-	echo.Success(c, rdata, "", "")
+	arr = append(arr, Rdata{
+		Id:   1,
+		Name: "充值",
+	})
+	arr = append(arr, Rdata{
+		Id:   2,
+		Name: "提现",
+	})
+	arr = append(arr, Rdata{
+		Id:   3,
+		Name: "划转",
+	})
+	arr = append(arr, Rdata{
+		Id:   4,
+		Name: "快捷买币",
+	})
+	arr = append(arr, Rdata{
+		Id:   5,
+		Name: "空投",
+	})
+	arr = append(arr, Rdata{
+		Id:   6,
+		Name: "现货",
+	})
+	arr = append(arr, Rdata{
+		Id:   7,
+		Name: "合约",
+	})
+	arr = append(arr, Rdata{
+		Id:   8,
+		Name: "期权",
+	})
+	arr = append(arr, Rdata{
+		Id:   9,
+		Name: "手续费",
+	})
+	echo.Success(c, arr, "", "")
 }
 
 // ListHandler 流水列表
