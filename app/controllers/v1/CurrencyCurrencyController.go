@@ -54,7 +54,14 @@ func (h *CurrencyCurrencyController) HistoryHandler(c *gin.Context) {
 
 // TransactionHandler 币币交易-买入、卖出   addData.TransactionType = "1" // 订单方向：1-买入 2-卖出
 func (h *CurrencyCurrencyController) TransactionHandler(c *gin.Context) {
-	var params requests.CurrencyTransaction // 绑定接收的 json 数据到结构体中
+	var (
+		params                  requests.CurrencyTransaction // 绑定接收的 json 数据到结构体中
+		Currency                response.Currency            // 查询交易币种信息
+		UsersWallet             response.UsersWallet         // 币币交易钱包1
+		UsersWallet2            response.UsersWallet         // 币币交易钱包2
+		WalletStreamUsersWallet response.UsersWallet         // 钱包流水
+		addData                 models.CurrencyTransaction   // 添加币币交易数据
+	)
 	_ = c.Bind(&params)
 	// 数据验证
 	vErr := validator.Validate.Struct(params)
@@ -65,25 +72,33 @@ func (h *CurrencyCurrencyController) TransactionHandler(c *gin.Context) {
 	}
 	userInfo, _ := c.Get("user")
 	userId, _ := c.Get("user_id")
-	var addData models.CurrencyTransaction
 	addData.Status = "0" // 状态：0 交易中 1 已完成 2 已撤单
-	CurrencyId, err := strconv.Atoi(params.CurrencyId)
-	if err != nil {
-		logger.Error(errors.New("传输的币种id转义失败"))
-		echo.Error(c, "ValidatorError", err.Error())
-		return
-	}
+	CurrencyId, CurrencyIdErr := strconv.Atoi(params.CurrencyId)
 	LimitPrice, LimitPriceErr := strconv.ParseFloat(params.LimitPrice, 64)
 	OrderPrice, OrderPriceErr := strconv.ParseFloat(params.OrderPrice, 64)
 	EntrustNum, EntrustNumErr := strconv.ParseFloat(params.EntrustNum, 64)
-	if OrderPriceErr != nil || LimitPriceErr != nil || EntrustNumErr != nil {
-		echo.Error(c, "ValidatorError", err.Error())
+	if CurrencyIdErr != nil {
+		logger.Error(errors.New("传输的币种id转义失败"))
+		echo.Error(c, "ValidatorError", CurrencyIdErr.Error())
+		return
+	}
+	if LimitPriceErr != nil {
+		logger.Error(errors.New("传输的LimitPrice转义失败"))
+		echo.Error(c, "ValidatorError", LimitPriceErr.Error())
+		return
+	}
+	if OrderPriceErr != nil {
+		logger.Error(errors.New("传输的OrderPrice转义失败"))
+		echo.Error(c, "ValidatorError", OrderPriceErr.Error())
+		return
+	}
+	if EntrustNumErr != nil {
+		logger.Error(errors.New("传输的EntrustNum转义失败"))
+		echo.Error(c, "ValidatorError", EntrustNumErr.Error())
 		return
 	}
 	// 开启数据库
 	DB := mysql.DB.Debug().Begin()
-	// 查询交易币种信息
-	var Currency response.Currency
 	DB.Model(models.Currency{}).
 		Where(map[string]interface{}{models.Prefix("$_currency.id"): params.CurrencyId}).
 		Select(models.Prefix(models.Prefix("$_currency.*,$_trading_pair.name as trading_pair_name"))).
@@ -99,7 +114,6 @@ func (h *CurrencyCurrencyController) TransactionHandler(c *gin.Context) {
 		echo.Error(c, "CurrencyTransactionIsExist", "")
 		return
 	}
-
 	addData.UserId = userId.(int)                                         // 用户id
 	addData.Email = userInfo.(map[string]interface{})["email"].(string)   // 邮箱
 	addData.OrderNumber = helpers.OrderId("CC")                           // 订单号
@@ -115,7 +129,6 @@ func (h *CurrencyCurrencyController) TransactionHandler(c *gin.Context) {
 	where["status"] = "0" // 0正常 1锁定
 	where["type"] = "1"   // 钱包类型：1现货 2合约
 	where["trading_pair_id"] = Currency.TradingPairId
-	var UsersWallet response.UsersWallet
 	DB.Model(models.UsersWallet{}).Where(where).Find(&UsersWallet)
 	// 用户钱包对可用余额不足
 	if UsersWallet.Available <= 0 || UsersWallet.Id <= 0 {
@@ -132,7 +145,6 @@ func (h *CurrencyCurrencyController) TransactionHandler(c *gin.Context) {
 	where2["status"] = "0" // 0正常 1锁定
 	where2["type"] = "1"   // 钱包类型：1现货 2合约
 	where2["trading_pair_name"] = Currency.Name
-	var UsersWallet2 response.UsersWallet
 	DB.Model(models.UsersWallet{}).Where(where2).Find(&UsersWallet2)
 	// 交易对钱包信息不存在，或者可用余额不足
 	if UsersWallet2.Available <= 0 || UsersWallet2.Id <= 0 {
@@ -143,8 +155,6 @@ func (h *CurrencyCurrencyController) TransactionHandler(c *gin.Context) {
 		echo.Error(c, "InsufficientBalance", "")
 		return
 	}
-
-	var WalletStreamUsersWallet response.UsersWallet
 	UpdateUsersWallet := cmap.New().Items()
 	// 订单方向：1-买入
 	if params.TransactionType == "1" {
@@ -240,6 +250,7 @@ func (h *CurrencyCurrencyController) TransactionHandler(c *gin.Context) {
 	cErr = DB.Model(AssetsStream).Create(&AssetsStream).Error
 	if cErr != nil {
 		DB.Rollback()
+		logger.Error(errors.New("添加数据失败" + cErr.Error()))
 		echo.Error(c, "AddError", cErr.Error())
 		return
 	}
@@ -248,11 +259,11 @@ func (h *CurrencyCurrencyController) TransactionHandler(c *gin.Context) {
 	// Way 流转方式 1 收入 2 支出
 	// Type 流转类型 0 未知 1 充值 2 提现 3 划转 4 快捷买币 5 空投 6 现货 7 合约 8 期权 9 手续费
 	// TypeDetail 流转详细类型 0 未知 1 USDT充值 2银行卡充值 3现货划转合约 4合约划转现货 5提现 6空投支出 7空投收入 8现货支出 9现货收入 10合约支出 11合约收入 12期权支出 13期权收入
-	WalletStream, err4 := new(models.WalletStream).SetAddData("2", "6", "8", addData, Currency, WalletStreamUsersWallet)
-	if err4 != nil {
+	WalletStream, WalletStreamErr := new(models.WalletStream).SetAddData("2", "6", "8", addData, Currency, WalletStreamUsersWallet)
+	if WalletStreamErr != nil {
 		DB.Rollback()
-		logger.Error(errors.New("添加数据失败" + err4.Error()))
-		echo.Error(c, "AddError", err4.Error())
+		logger.Error(errors.New("添加数据失败" + WalletStreamErr.Error()))
+		echo.Error(c, "AddError", WalletStreamErr.Error())
 		return
 	}
 	cErr = DB.Model(WalletStream).Create(&WalletStream).Error
