@@ -92,9 +92,13 @@ func (h *OptionContractController) LogHandler(c *gin.Context) {
 // TradeHandler 期权合约-买张、买跌、自输入
 func (h *OptionContractController) TradeHandler(c *gin.Context) {
 	var (
-		request        requests.OptionContractTransaction
-		OptionContract response.OptionContract
-		addData        models.OptionContractTransaction
+		request        requests.OptionContractTransaction // 接收请求参数
+		OptionContract response.OptionContract            // 查询期权合约信息
+		Currency       response.Currency                  // 查询交易币种信息
+		UsersWallet    response.UsersWallet               // 查询钱包信息
+		UserInfo       response.User                      // 查询用户信息
+		addData        models.OptionContractTransaction   // 添加期权合约交易信息
+		arr            agent_dividend.Params              // 代理分润数据
 	)
 	_ = c.Bind(&request)
 	// 数据验证
@@ -111,8 +115,14 @@ func (h *OptionContractController) TradeHandler(c *gin.Context) {
 	addData.UserId = userId.(int)
 	addData.Email = userInfo.(map[string]interface{})["email"].(string)
 	CurrencyId, err := strconv.Atoi(request.CurrencyId)
+	Price, PriceErr := strconv.ParseFloat(request.Price, 64)
 	if err != nil {
 		echo.Error(c, "ValidatorError", err.Error())
+		return
+	}
+	if PriceErr != nil {
+		logger.Error(errors.New(fmt.Sprintf("金额转换为float64失败: %v", request.Price)))
+		echo.Error(c, "AddError", PriceErr.Error())
 		return
 	}
 	addData.CurrencyId = CurrencyId                     // 币种
@@ -146,8 +156,6 @@ func (h *OptionContractController) TradeHandler(c *gin.Context) {
 		return
 	}
 	// 查询交易的合约信息
-	// 查询交易币种信息
-	var Currency response.Currency
 	DB.Model(models.Currency{}).
 		Where(models.Prefix("$_currency.id"), request.CurrencyId).
 		Select(models.Prefix("$_currency.*,$_trading_pair.name as trading_pair_name")).
@@ -177,15 +185,7 @@ func (h *OptionContractController) TradeHandler(c *gin.Context) {
 	where["user_id"] = userId
 	where["type"] = "2" // 钱包类型：1现货 2合约
 	where["trading_pair_id"] = Currency.TradingPairId
-	var UsersWallet response.UsersWallet
 	DB.Model(models.UsersWallet{}).Where(where).Find(&UsersWallet)
-	Price, err2 := strconv.ParseFloat(request.Price, 64)
-	if err2 != nil {
-		logger.Error(errors.New(fmt.Sprintf("金额转换为float64失败: %v", request.Price)))
-		DB.Rollback()
-		echo.Error(c, "AddError", err2.Error())
-		return
-	}
 	// 用户可用余额不足
 	if UsersWallet.Id <= 0 || UsersWallet.Available <= 0 || UsersWallet.Available < Price {
 		logger.Error(errors.New(fmt.Sprintf("UsersWallet.Available: %v <= 0 || UsersWallet.Id: %v <= 0", UsersWallet.Available, UsersWallet.Id)))
@@ -253,10 +253,8 @@ func (h *OptionContractController) TradeHandler(c *gin.Context) {
 	}
 
 	// 检测分发代理分润
-	var UserInfo response.User
 	DB.Model(models.User{}).Where("id", userId).Find(&UserInfo) // 查询用户信息
 	if UserInfo.ParentId > 0 {                                  // parentId 上级代理id
-		var arr agent_dividend.Params
 		arr.UserId = UserInfo.ParentId                // 用户id
 		arr.Email = UserInfo.Email                    // 用户邮箱
 		arr.WalletType = 2                            // 钱包类型：1现货 2合约
