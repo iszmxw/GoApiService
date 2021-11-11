@@ -8,9 +8,9 @@ type TradingPair struct {
 
 // ListAssetsStream 查询资产流水
 type ListAssetsStream struct {
-	TradingPairId string `json:"trading_pair_id" form:"trading_pair_id" validate:"omitempty,numeric"` //交易对ID
-	OrderType     string `json:"order_type" form:"order_type" validate:"omitempty,numeric"`           //订单类型 1 币币交易 2 永续合约 3 期权合约
-	Time          string `json:"time" form:"time" validate:"omitempty,numeric"`                       //订单时间最近七天（7, 15, 30）
+	TradingPairId string `json:"trading_pair_id" form:"trading_pair_id" validate:"omitempty,numeric"` // 交易对ID
+	OrderType     string `json:"order_type" form:"order_type" validate:"omitempty,numeric"`           // 流转类型 1 充值 2 提现 3 划转 4 快捷买币 5 空投 6 现货 7 合约 8 期权 9 手续费
+	Time          string `json:"time" form:"time" validate:"omitempty,numeric"`                       // 订单时间最近七天（7, 15, 30）
 }
 
 // WalletAddressAdd 提币地址配置

@@ -19,16 +19,44 @@ type OrderController struct {
 // TypeHandler 流水类型
 func (h *OrderController) TypeHandler(c *gin.Context) {
 	rdata := cmap.New().Items()
+	var arrayData []map[string]interface{}
 	// 流转类型 0 未知 1 充值 2 提现 3 划转 4 快捷买币 5 空投 6 现货 7 合约 8 期权 9 手续费
-	rdata["1"] = "充值"
-	rdata["2"] = "提现"
-	rdata["3"] = "划转"
-	rdata["4"] = "快捷买币"
-	rdata["5"] = "空投"
-	rdata["6"] = "现货"
-	rdata["7"] = "合约"
-	rdata["8"] = "期权"
-	rdata["9"] = "手续费"
+	rdata["id"] = "1"
+	rdata["name"] = "充值"
+	arrayData[1] = rdata
+
+	rdata["id"] = "2"
+	rdata["name"] = "提现"
+	arrayData[2] = rdata
+
+	rdata["id"] = "3"
+	rdata["name"] = "划转"
+	arrayData[3] = rdata
+
+	rdata["id"] = "4"
+	rdata["name"] = "快捷买币"
+	arrayData[4] = rdata
+
+	rdata["id"] = "5"
+	rdata["name"] = "空投"
+	arrayData[5] = rdata
+
+	rdata["id"] = "6"
+	rdata["name"] = "现货"
+	arrayData[6] = rdata
+
+	rdata["id"] = "7"
+	rdata["name"] = "合约"
+	arrayData[7] = rdata
+
+	rdata["id"] = "8"
+	rdata["name"] = "期权"
+	arrayData[8] = rdata
+
+	rdata["id"] = "9"
+	rdata["name"] = "手续费"
+	arrayData[9] = rdata
+
 	echo.Success(c, rdata, "", "")
 }
 

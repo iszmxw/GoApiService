@@ -1,7 +1,6 @@
 package bootstrap
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	gs "github.com/swaggo/gin-swagger"
 	"github.com/swaggo/gin-swagger/swaggerFiles"
@@ -24,11 +23,11 @@ func SetupRoute() *gin.Engine {
 	router.GET("/", func(context *gin.Context) {
 		requestId, _ := context.Get("Tracking-Id")
 		context.String(200, "Hello World!："+requestId.(string)+"\n\n\n")
-		context.String(200, "下面是所有接口服务：\n\n\n")
-		routers := router.Routes()
-		for _, v := range routers {
-			context.String(200, fmt.Sprintf("Method：\t%v  URL：\t%v  \t\t\tHandler: \t%v \n", v.Method, v.Path, v.Handler))
-		}
+		//context.String(200, "下面是所有接口服务：\n\n\n")
+		//routers := router.Routes()
+		//for _, v := range routers {
+		//	context.String(200, fmt.Sprintf("Method：\t%v  URL：\t%v  \t\t\tHandler: \t%v \n", v.Method, v.Path, v.Handler))
+		//}
 	})
 	routes.RegisterWebRoutes(apiV1)
 	routes.RegisterTestRoutes(Test)
