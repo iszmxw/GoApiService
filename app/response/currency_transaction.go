@@ -16,7 +16,6 @@ type CurrencyTransaction struct {
 	EntrustNum      string             `json:"entrust_num"`      // 委托量
 	OrderType       string             `json:"order_type"`       //挂单类型：1-限价 2-市价
 	LimitPrice      string             `json:"limit_price"`      //当前限价
-	ClinchNum       string             `json:"clinch_num"`       //成交量
 	TransactionType string             `json:"transaction_type"` //订单方向：1-买入 2-卖出
 	OrderPrice      float64            `json:"price"`            //订单额
 	Status          string             `json:"status"`           //状态：0 交易中 1 已完成 2 已撤单

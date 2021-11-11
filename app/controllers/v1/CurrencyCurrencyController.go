@@ -216,6 +216,11 @@ func (h *CurrencyCurrencyController) TransactionHandler(c *gin.Context) {
 		// 挂单类型：1-限价 2-市价 类型计算
 		// 可用余额减去卖出货币
 		UpdateUsersWallet["available"] = UsersWallet2.Available - EntrustNum
+		// 消费的金额不能大于钱包余额
+		if EntrustNum > UsersWallet2.Available {
+			echo.Error(c, "InsufficientBalance", "")
+			return
+		}
 		WalletStreamUsersWallet = UsersWallet2
 		// 订单方向：2-卖出 // 修改钱包余额 （交易扣减）
 		editError := DB.Model(models.UsersWallet{}).Where(where2).Updates(UpdateUsersWallet).Error
@@ -279,9 +284,11 @@ func (h *CurrencyCurrencyController) TransactionHandler(c *gin.Context) {
 
 // CancelOrderHandler 币币交易-撤单
 func (h *CurrencyCurrencyController) CancelOrderHandler(c *gin.Context) {
-	var params requests.CancelOrder
-	var CurrencyTransaction response.CurrencyTransaction
-	var UsersWallet response.UsersWallet
+	var (
+		params              requests.CancelOrder         // 接收请求参数
+		CurrencyTransaction response.CurrencyTransaction // 查询币币交易订单
+		UsersWallet         response.UsersWallet         // 查询用户钱包
+	)
 	_ = c.Bind(&params) // 数据验证
 	vErr := validator.Validate.Struct(params)
 	if vErr != nil {
@@ -289,14 +296,11 @@ func (h *CurrencyCurrencyController) CancelOrderHandler(c *gin.Context) {
 		echo.Error(c, "ValidatorError", msg)
 		return
 	}
-	userInfo, _ := c.Get("user")
 	userId, _ := c.Get("user_id")
-	DB := mysql.DB.Debug()
+	DB := mysql.DB.Debug().Begin()
 	DB.Model(models.CurrencyTransaction{}).
-		Where(map[string]interface{}{
-			models.Prefix("$_currency_transaction.email"): userInfo.(map[string]interface{})["email"],
-			models.Prefix("$_currency_transaction.id"):    params.Id},
-		).
+		Where(models.Prefix("$_currency_transaction.id"), params.Id).
+		Where(models.Prefix("$_currency_transaction.user_id"), userId).
 		Joins(models.Prefix("left join $_currency on $_currency.id=$_currency_transaction.currency_id")).
 		Select(models.Prefix("$_currency_transaction.*,$_currency.trading_pair_id,$_currency.name")).Find(&CurrencyTransaction)
 	if CurrencyTransaction.Status == "0" {
@@ -322,8 +326,8 @@ func (h *CurrencyCurrencyController) CancelOrderHandler(c *gin.Context) {
 			whereUsersWallet := map[string]interface{}{"user_id": userId, "type": "1", "trading_pair_name": CurrencyTransaction.Name}
 			DB.Model(models.UsersWallet{}).Where(whereUsersWallet).Find(&UsersWallet)
 			// 退还卖出的金额到账户
-			ClinchNum, _ := strconv.ParseFloat(CurrencyTransaction.ClinchNum, 64)
-			UsersWallet.Available = UsersWallet.Available + ClinchNum
+			EntrustNum, _ := strconv.ParseFloat(CurrencyTransaction.EntrustNum, 64)
+			UsersWallet.Available = UsersWallet.Available + EntrustNum
 			uErr := DB.Model(models.UsersWallet{}).Where(whereUsersWallet).Update("available", UsersWallet.Available).Error
 			if uErr != nil {
 				fmt.Println(uErr.Error())
@@ -334,11 +338,11 @@ func (h *CurrencyCurrencyController) CancelOrderHandler(c *gin.Context) {
 		}
 
 	}
-	where := cmap.New().Items()
-	where["email"] = userInfo.(map[string]interface{})["email"]
-	where["id"] = params.Id
-	where["status"] = "0"
-	uErr := DB.Model(models.CurrencyTransaction{}).Where(where).Update("status", "2").Error
+	uErr := DB.Model(models.CurrencyTransaction{}).
+		Where("id", params.Id).
+		Where("user_id", userId).
+		Where("status", "0").
+		Update("status", "2").Error
 	if uErr != nil {
 		DB.Rollback()
 		echo.Error(c, "OperationFailed", uErr.Error())
