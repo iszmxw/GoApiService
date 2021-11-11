@@ -173,7 +173,7 @@ func (h *LoginController) VerifyRegisterHandler(c *gin.Context) {
 		echo.Error(c, "UserIsExist", "")
 		return
 	}
-	mysql.DB.Model(models.Globals{}).Where(map[string]interface{}{"fields": "invitation_code"}).Find(&GlobalsTypes)
+	mysql.DB.Model(models.Globals{}).Where("fields", "invitation_code").Find(&GlobalsTypes)
 	if GlobalsTypes.Id <= 0 {
 		logger.Info("邀请码开关未设置")
 	}
@@ -211,8 +211,8 @@ func (h *LoginController) VerifyRegisterHandler(c *gin.Context) {
 	if err != nil {
 		// 遇到错误时回滚事务
 		DB.Rollback()
-		// todo 日志记录
-		echo.Error(c, "LangSetUp", "")
+		logger.Error(err)
+		echo.Error(c, "OperationFailed", "")
 		return
 	}
 
