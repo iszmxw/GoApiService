@@ -1,10 +1,12 @@
 package v1
 
 import (
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	cmap "github.com/orcaman/concurrent-map"
+	"github.com/skip2/go-qrcode"
 	"goapi/app/models"
 	"goapi/app/requests"
 	"goapi/app/response"
@@ -25,6 +27,7 @@ func (h *TradeController) SysTypeHandler(c *gin.Context) {
 	var (
 		data   []response.GlobalsTypes
 		result []map[string]interface{}
+		Img    string
 	)
 	mysql.DB.Debug().Model(models.Globals{}).Where("fields IN ?", []string{"omni_wallet_address", "erc20_wallet_address", "trc20_wallet_address"}).Find(&data)
 	if len(data) > 0 {
@@ -33,12 +36,33 @@ func (h *TradeController) SysTypeHandler(c *gin.Context) {
 			switch val.Fields {
 			case "omni_wallet_address":
 				arr["OMNI"] = val.Value
+				OmniImg, OmniImgerr := qrcode.Encode(val.Value, qrcode.Medium, 256)
+				if OmniImgerr != nil {
+					Img = ""
+				} else {
+					Img = "data:image/png;base64," + base64.StdEncoding.EncodeToString(OmniImg)
+				}
+				arr["OMNI_IMG"] = Img
 				break
 			case "erc20_wallet_address":
 				arr["ERC20"] = val.Value
+				ecr20Img, ecr20Imgerr := qrcode.Encode(val.Value, qrcode.Medium, 256)
+				if ecr20Imgerr != nil {
+					Img = ""
+				} else {
+					Img = "data:image/png;base64," + base64.StdEncoding.EncodeToString(ecr20Img)
+				}
+				arr["ERC20_IMG"] = Img
 				break
 			case "trc20_wallet_address":
 				arr["TRC20"] = val.Value
+				tcr20Img, tcr20Imgerr := qrcode.Encode(val.Value, qrcode.Medium, 256)
+				if tcr20Imgerr != nil {
+					Img = ""
+				} else {
+					Img = "data:image/png;base64," + base64.StdEncoding.EncodeToString(tcr20Img)
+				}
+				arr["TRC20_IMG"] = Img
 				break
 			}
 			result = append(result, arr)

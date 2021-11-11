@@ -1,20 +1,15 @@
 package main
 
 import (
-	"fmt"
-	"goapi/config"
-	conf "goapi/pkg/config"
-	"goapi/pkg/email/qq"
+	"github.com/skip2/go-qrcode"
+	"goapi/pkg/logger"
 )
 
 func init() {
-	// 初始化配置信息
-	config.Initialize()
 }
 
 func main() {
-	err := qq.SendEmail("code", conf.GetString("email.qq.user"), "543619552@qq.com", "121212")
-	if err != nil {
-		fmt.Println(err)
-	}
+	url := "https://baidu.com"
+	png, _ := qrcode.Encode(url, qrcode.Medium, 256)
+	logger.Info(png)
 }
