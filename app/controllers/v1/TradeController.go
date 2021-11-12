@@ -438,7 +438,7 @@ func (h *TradeController) SubmitApplyBuyHandler(c *gin.Context) {
 	var GetUsersWallet response.UsersWallet
 	DB.Model(models.UsersWallet{}).
 		Where("user_id", userId).
-		Where("trading_pair_id", ApplyBuy.GetCurrencyId).
+		Where("trading_pair_name", ApplyBuy.GetCurrencyName).
 		Where("type", "2").
 		Find(&GetUsersWallet)
 	if GetUsersWallet.Id <= 0 {
@@ -483,7 +483,7 @@ func (h *TradeController) SubmitApplyBuyHandler(c *gin.Context) {
 	editError1 := DB.Model(models.UsersWallet{}).
 		Where("user_id", userId).
 		Where("type", "2"). // 钱包类型：1现货 2合约
-		Where("trading_pair_id", GetUsersWallet.TradingPairId).
+		Where("trading_pair_name", ApplyBuy.GetCurrencyName).
 		Updates(UpdateUsersWallet1).Error
 	if editError1 != nil {
 		logger.Error(errors.New(fmt.Sprintf("修改钱包余额失败，%v", editError.Error())))
