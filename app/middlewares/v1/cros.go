@@ -3,7 +3,6 @@ package v1
 import (
 	"github.com/gin-gonic/gin"
 	"goapi/pkg/abnormal"
-	"goapi/pkg/logger"
 	"net/http"
 )
 
@@ -24,7 +23,6 @@ func Cors() gin.HandlerFunc {
 			c.AbortWithStatus(http.StatusNoContent)
 		}
 		defer abnormal.Stack("进入中间件")
-		logger.Info("=================START=====================")
 		c.Next()
 	}
 }

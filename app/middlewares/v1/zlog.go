@@ -43,6 +43,9 @@ func TraceLogger() gin.HandlerFunc {
 		// 很关键,把读过的字节流重新放到body
 		ctx.Request.Body = ioutil.NopCloser(bytes.NewBuffer(data))
 		logger.NewContext(ctx, zap.Any("request.params", string(data)))
+		logger.Info("=================Start：" + RequestId + "=====================")
+		logger.WithContext(ctx).Info("请求信息", zap.Skip())
+		logger.Info("=================End：" + RequestId + "=====================")
 		ctx.Next()
 	}
 }

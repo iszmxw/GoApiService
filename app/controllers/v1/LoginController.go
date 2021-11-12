@@ -178,8 +178,8 @@ func (h *LoginController) VerifyRegisterHandler(c *gin.Context) {
 		logger.Info("邀请码开关未设置")
 	}
 
-	// 开启了邀请码
-	if GlobalsTypes.Value == "1" {
+	// 开启了邀请码，或者用户填写了邀请码
+	if GlobalsTypes.Value == "1" || len(params.ShareCode) > 0 {
 		sysShareCode := config.Env("SHARE_CODE").(string)
 		fmt.Println(fmt.Sprintf("sysShareCode: %v,ShareCode: %v", sysShareCode, params.ShareCode))
 		// 邀请码是否存在
@@ -244,20 +244,20 @@ func (h *LoginController) VerifyRegisterHandler(c *gin.Context) {
 		// 查找系统最大的邀请码
 		DB.Model(models.User{}).Where("share_code <> ?", "").Order("share_code desc").Find(maxShareCode)
 		if len(maxShareCode.ShareCode) <= 0 {
-			init, err := strconv.Atoi(config.Env("INIT_SHARE").(string))
-			if err != nil {
+			init, initErr := strconv.Atoi(config.Env("INIT_SHARE").(string))
+			if initErr != nil {
 				fmt.Println("邀请码初始值获取失败")
 			}
 			initShareCode = init + UserCode.Id
 		} else {
-			autoShareCode, err := strconv.Atoi(maxShareCode.ShareCode)
-			if err != nil {
+			autoShareCode, autoShareCodeErr := strconv.Atoi(maxShareCode.ShareCode)
+			if autoShareCodeErr != nil {
 				fmt.Println("获取最大邀邀请码失败")
 			}
 			initShareCode = autoShareCode + 1
 		}
-		err := DB.Model(models.User{}).Where(map[string]interface{}{"id": UserCode.Id}).Update("share_code", initShareCode).Error
-		if err != nil {
+		uErr := DB.Model(models.User{}).Where(map[string]interface{}{"id": UserCode.Id}).Update("share_code", initShareCode).Error
+		if uErr != nil {
 			DB.Rollback()
 			// todo 日志记录
 			fmt.Println("邀请码初始化失败")

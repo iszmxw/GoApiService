@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 	"goapi/pkg/echo"
 	"goapi/pkg/logger"
 	"goapi/pkg/redis"
@@ -18,7 +17,6 @@ func Client() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// 设置语言，默认英文
 		SetLang(c, "zh")
-		logger.WithContext(c).Info("请求信息", zap.Skip())
 		path := c.FullPath()
 		switch path {
 		case "/v1/api/user/login":
@@ -57,7 +55,6 @@ func CheckLogin(c *gin.Context) {
 		return
 	}
 	strInfo, err = redis.Get(tokenString)
-	logger.Info(strInfo)
 	if err != nil {
 		echo.Error(c, "LoginError", "")
 		c.Abort()
@@ -71,6 +68,7 @@ func CheckLogin(c *gin.Context) {
 		logger.Error(multiErr)
 		return
 	}
+	logger.Info(user)
 	// id 转换为整型
 	userId, strErr := strconv.Atoi(fmt.Sprintf("%.0f", user["id"].(float64)))
 	if strErr != nil {
@@ -83,7 +81,6 @@ func CheckLogin(c *gin.Context) {
 	c.Set("user_id", userId)
 	// 再次确认设置语言
 	SetLang(c, "zh")
-	logger.Info("=================middlewares=====================")
 	// 继续往下面执行
 	c.Next()
 }
