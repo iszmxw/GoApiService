@@ -3,7 +3,6 @@ package v1
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	cmap "github.com/orcaman/concurrent-map"
 	"goapi/app/models"
 	"goapi/app/requests"
 	"goapi/app/response"
@@ -22,10 +21,8 @@ type UserController struct {
 // UserInfoHandler 获取用户信息
 func (h *UserController) UserInfoHandler(c *gin.Context) {
 	userId, _ := c.Get("user_id")
-	where := cmap.New().Items()
-	where["id"] = userId
 	result := new(response.User)
-	new(models.User).GetOne(where, result)
+	mysql.DB.Debug().Model(models.User{}).Where("id", userId).Find(&result)
 	// 检测邀请码信息，初始化一系列
 	share_code.GetShareCode(result)
 	echo.Success(c, result, "", "")
@@ -157,10 +154,8 @@ func (h *UserController) EditPasswordHandler(c *gin.Context) {
 
 func (h *UserController) ShareCodeHandler(c *gin.Context) {
 	userId, _ := c.Get("user_id")
-	where := cmap.New().Items()
-	where["id"] = userId
 	result := new(response.User)
-	new(models.User).GetOne(where, result)
+	mysql.DB.Debug().Model(models.User{}).Where("id", userId).Find(&result)
 
 	echo.Success(c, result, "", "")
 }

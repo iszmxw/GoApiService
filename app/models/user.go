@@ -1,9 +1,7 @@
 package models
 
 import (
-	"goapi/app/response"
 	"goapi/pkg/config"
-	"goapi/pkg/mysql"
 	"gorm.io/gorm"
 	"time"
 )
@@ -36,24 +34,4 @@ func (m *User) TableName() string {
 	prefix := config.GetString("database.mysql.prefix")
 	table := "user"
 	return prefix + table
-}
-
-func (m User) Add(users *User) error {
-	DB := mysql.DB.Debug()
-	return DB.Create(&users).Error
-}
-
-func (m User) Update(user *User) error {
-	DB := mysql.DB.Debug()
-	return DB.Updates(&user).Error
-}
-
-func (m User) GetOne(where map[string]interface{}, users *response.User) {
-	DB := mysql.DB.Debug()
-	DB.Model(m).Where(where).Find(&users)
-}
-
-func (m *User) SelectDelete(where map[string]interface{}, users *User) {
-	DB := mysql.DB.Debug()
-	DB.Where(where).Delete(users)
 }

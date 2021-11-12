@@ -46,10 +46,8 @@ func (h *LoginController) LoginHandler(c *gin.Context) {
 		echo.Error(c, "", msg)
 		return
 	}
-
-	db := new(models.User)
 	user := new(response.User)
-	db.GetOne(map[string]interface{}{"email": params.Email}, user)
+	mysql.DB.Debug().Model(models.User{}).Where("email", params.Email).Find(&user)
 	if user.Id <= 0 {
 		echo.Error(c, "UserIsNotExist", "")
 		return
@@ -113,7 +111,7 @@ func (h *LoginController) SendEmailRegisterHandler(c *gin.Context) {
 	}
 	// 检查用户是否注册
 	UserIsExist := new(response.User)
-	models.User{}.GetOne(map[string]interface{}{"email": params.Email}, UserIsExist)
+	mysql.DB.Debug().Model(models.User{}).Where("email", params.Email).Find(&UserIsExist)
 	if UserIsExist.Id > 0 {
 		echo.Error(c, "UserIsExist", "")
 		return
@@ -168,7 +166,7 @@ func (h *LoginController) VerifyRegisterHandler(c *gin.Context) {
 
 	// 检查用户是否注册
 	UserIsExist := new(response.User)
-	models.User{}.GetOne(map[string]interface{}{"email": params.Email}, UserIsExist)
+	mysql.DB.Debug().Model(models.User{}).Where("email", params.Email).Find(&UserIsExist)
 	if UserIsExist.Id > 0 {
 		echo.Error(c, "UserIsExist", "")
 		return
@@ -184,7 +182,7 @@ func (h *LoginController) VerifyRegisterHandler(c *gin.Context) {
 		fmt.Println(fmt.Sprintf("sysShareCode: %v,ShareCode: %v", sysShareCode, params.ShareCode))
 		// 邀请码是否存在
 		if sysShareCode != params.ShareCode {
-			models.User{}.GetOne(map[string]interface{}{"share_code": params.ShareCode}, parentUser)
+			mysql.DB.Debug().Model(models.User{}).Where("share_code", params.ShareCode).Find(&parentUser)
 			if parentUser.Id <= 0 {
 				echo.Error(c, "ShareCodeIsExist", "")
 				return
@@ -323,7 +321,7 @@ func (h *LoginController) SendEmailRetrieveHandler(c *gin.Context) {
 
 	// 发送找回邮件前检查用户是否注册
 	UserIsExist := new(response.User)
-	models.User{}.GetOne(map[string]interface{}{"email": params.Email}, UserIsExist)
+	mysql.DB.Debug().Model(models.User{}).Where("email", params.Email).Find(&UserIsExist)
 	if UserIsExist.Id <= 0 {
 		echo.Error(c, "UserIsExist", "")
 		return
@@ -400,7 +398,7 @@ func (h *LoginController) ResetPasswordHandler(c *gin.Context) {
 	}
 	// 检查用户是否注册
 	UserIsExist := new(response.User)
-	models.User{}.GetOne(map[string]interface{}{"email": params.Email}, UserIsExist)
+	mysql.DB.Debug().Model(models.User{}).Where("email", params.Email).Find(&UserIsExist)
 	if UserIsExist.Id <= 0 {
 		echo.Error(c, "UserIsExist", "")
 		return
