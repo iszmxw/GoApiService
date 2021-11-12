@@ -35,7 +35,6 @@ func TraceLogger() gin.HandlerFunc {
 		headers, _ := json.Marshal(ctx.Request.Header)
 		logger.NewContext(ctx, zap.String("request.headers", string(headers)))
 		// 将请求参数json序列化后添加进日志上下文
-		ctx.Request.Header.Get("")
 		data, err := ctx.GetRawData()
 		if err != nil {
 			logger.Error(err)
