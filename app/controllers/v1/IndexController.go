@@ -17,24 +17,28 @@ type IndexController struct {
 
 // SystemInfoHandler 系统信息
 func (h *IndexController) SystemInfoHandler(c *gin.Context) {
-	var GlobalsTypes1 response.GlobalsTypes
-	var GlobalsTypes2 response.GlobalsTypes
-	var GlobalsTypes3 response.GlobalsTypes
-	mysql.DB.Model(models.Globals{}).Where(map[string]interface{}{"fields": "download_link"}).Find(&GlobalsTypes1)
-	mysql.DB.Model(models.Globals{}).Where(map[string]interface{}{"fields": "kf_address"}).Find(&GlobalsTypes2)
-	mysql.DB.Model(models.Globals{}).Where(map[string]interface{}{"fields": "kf2_address"}).Find(&GlobalsTypes3)
+	var (
+		GlobalsTypes1 response.GlobalsTypes
+		GlobalsTypes2 response.GlobalsTypes
+		GlobalsTypes3 response.GlobalsTypes
+	)
+	mysql.DB.Model(models.Globals{}).Where("fields", "download_link").Find(&GlobalsTypes1)
+	mysql.DB.Model(models.Globals{}).Where("fields", "kfh5_address").Find(&GlobalsTypes2)
+	mysql.DB.Model(models.Globals{}).Where("fields", "kfapp_address").Find(&GlobalsTypes3)
 	result := gin.H{
-		"download_link": GlobalsTypes1.Value,
-		"kf_address":    GlobalsTypes2.Value,
-		"kf2_address":   GlobalsTypes3.Value,
+		"download_link": GlobalsTypes1.Value, // APP下载地址
+		"kfh5_address":  GlobalsTypes2.Value, // 客服H5地址
+		"kfapp_address": GlobalsTypes3.Value, // 客服APP地址
 	}
 	echo.Success(c, result, "", "")
 }
 
 // BannerHandler 轮播图
 func (h *IndexController) BannerHandler(c *gin.Context) {
-	var params requests.BannerType
-	var Banner []response.Banner
+	var (
+		params requests.BannerType
+		Banner []response.Banner
+	)
 	_ = c.Bind(&params)
 	// 数据验证
 	vErr := validator.Validate.Struct(params)

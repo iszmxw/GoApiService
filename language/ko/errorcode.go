@@ -31,19 +31,22 @@ type ErrorCode struct {
 	PasswordEditError                   string `code:"10025" msg:"로그인 암호 수정 실패"`
 	OperationFailed                     string `code:"10026" msg:"작업 실패"`
 	FeeOptionContractIsError            string `code:"10027" msg:"옵션 거래 계약 수수료가 설정되지 않았습니다. 여기에서 작업 구성에 문의하십시오."`
-	WithdrawalFeesIsError               string `code:"10027" msg:"비정상적인 출금 수수료"`
-	LoginFailed                         string `code:"10028" msg:"서비스 예외, 로그인 실패!"`
-	MultipleIsError                     string `code:"10029" msg:"시스템에서 설정한 값이 아닌 다중 값이 잘못되었습니다!"`
-	ContractIsNotCorrect                string `code:"10030" msg:"계약 정보가 올바르게 설정되지 않았습니다. 거래 쌍에 대한 해당 계약 정보를 설정하려면 관리자에게 문의하십시오."`
-	UsersWalletLock                     string `code:"10031" msg:"죄송합니다. 지갑이 일시적으로 잠겨 있습니다."`
-	LiquidationUnsuccessful             string `code:"10032" msg:"실패"`
-	OptionContractSecondsNotCorrect     string `code:"10033" msg:"옵션 계약의 잘못된 시간(초)"`
-	OptionContractStatus                string `code:"10034" msg:"이 옵션 계약은 아직 활성화되지 않았습니다!"`
-	FeePerpetualContractIsError         string `code:"10035" msg:"무기한 계약 수수료가 설정되지 않았습니다. 운영 구성에 문의하십시오!"`
-	MinAmountIsNotExist                 string `code:"10036" msg:"최소 출금 금액이 설정되지 않았습니다. Operation Configuration에 문의하십시오!"`
-	OptionContractProfitRatioNotCorrect string `code:"10037" msg:"옵션 계약 수익률이 잘못되었습니다."`
-	ApplyBuySetupStatusIsNotExist       string `code:"10037" msg:"구독 통화가 아직 열리지 않았습니다."`
-	CurrencyTransactionIsExist          string `code:"10038" msg:"시스템은 일시적으로 통화의 거래를 변경하는 것을 허용하지 않습니다."`
-	LimitPriceErr                       string `code:"10039" msg:"제한 가격 매개변수 오류"`
-	EntrustNumErr                       string `code:"10039" msg:"주문 금액 매개변수 오류"`
+	WithdrawalFeesIsError               string `code:"10028" msg:"비정상적인 출금 수수료"`
+	LoginFailed                         string `code:"10029" msg:"서비스 예외, 로그인 실패!"`
+	MultipleIsError                     string `code:"10030" msg:"시스템에서 설정한 값이 아닌 다중 값이 잘못되었습니다!"`
+	ContractIsNotCorrect                string `code:"10031" msg:"계약 정보가 올바르게 설정되지 않았습니다. 거래 쌍에 대한 해당 계약 정보를 설정하려면 관리자에게 문의하십시오."`
+	UsersWalletLock                     string `code:"10032" msg:"죄송합니다. 지갑이 일시적으로 잠겨 있습니다."`
+	LiquidationUnsuccessful             string `code:"10033" msg:"실패"`
+	OptionContractSecondsNotCorrect     string `code:"10034" msg:"옵션 계약의 잘못된 시간(초)"`
+	OptionContractStatus                string `code:"10035" msg:"이 옵션 계약은 아직 활성화되지 않았습니다!"`
+	FeePerpetualContractIsError         string `code:"10036" msg:"무기한 계약 수수료가 설정되지 않았습니다. 운영 구성에 문의하십시오!"`
+	MinAmountIsNotExist                 string `code:"10037" msg:"최소 출금 금액이 설정되지 않았습니다. Operation Configuration에 문의하십시오!"`
+	OptionContractProfitRatioNotCorrect string `code:"10038" msg:"옵션 계약 수익률이 잘못되었습니다."`
+	ApplyBuySetupStatusIsNotExist       string `code:"10039" msg:"구독 통화가 아직 열리지 않았습니다."`
+	CurrencyTransactionIsExist          string `code:"10040" msg:"시스템은 일시적으로 통화의 거래를 변경하는 것을 허용하지 않습니다."`
+	LimitPriceErr                       string `code:"10041" msg:"제한 가격 매개변수 오류"`
+	EntrustNumErr                       string `code:"10042" msg:"주문 금액 매개변수 오류"`
+	CurrencyTypeIsNotAllowed            string `code:"10043" msg:"이 유형의 거래는 이 거래 쌍에 대해 일시적으로 허용되지 않습니다. 필요한 경우 작업에 문의하십시오."`
+	UserIsLock                          string `code:"10044" msg:"사용자 상태가 잠겨 있습니다."`
+	SearchTimeErr                       string `code:"10045" msg:"검색 시간 형식이 잘못되었습니다(예: 2006-01-02)."`
 }

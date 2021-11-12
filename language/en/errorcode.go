@@ -31,21 +31,22 @@ type ErrorCode struct {
 	PasswordEditError                   string `code:"10025" msg:"Login password modification failed"`
 	OperationFailed                     string `code:"10026" msg:"operation failed"`
 	FeeOptionContractIsError            string `code:"10027" msg:"The option transaction contract fee has not been set, please contact the operation configuration here"`
-	WithdrawalFeesIsError               string `code:"10027" msg:"Abnormal withdrawal fee"`
-	LoginFailed                         string `code:"10028" msg:"Service exception, login failed!"`
-	MultipleIsError                     string `code:"10029" msg:"The multiple value is illegal, not the value set by the system!"`
-	ContractIsNotCorrect                string `code:"10030" msg:"The contract information is not set correctly, please contact the administrator to set the corresponding contract information for the transaction pair"`
-	UsersWalletLock                     string `code:"10031" msg:"Sorry, your wallet is temporarily locked"`
-	LiquidationUnsuccessful             string `code:"10032" msg:"Unsuccessful"`
-	OptionContractSecondsNotCorrect     string `code:"10033" msg:"Incorrect number of seconds in options contract"`
-	OptionContractStatus                string `code:"10034" msg:"This option contract has not been activated yet!"`
-	FeePerpetualContractIsError         string `code:"10035" msg:"The perpetual contract fee has not been set, please contact the operation configuration!"`
-	MinAmountIsNotExist                 string `code:"10036" msg:"No minimum withdrawal amount has been set, please contact Operation Configuration!"`
-	OptionContractProfitRatioNotCorrect string `code:"10037" msg:"The option contract rate of return is incorrect"`
-	ApplyBuySetupStatusIsNotExist       string `code:"10037" msg:"The subscription currency has not been opened yet"`
-	CurrencyTransactionIsExist          string `code:"10038" msg:"The system temporarily does not allow transactions in the currency to be changed"`
-	LimitPriceErr                       string `code:"10039" msg:"Limit price parameter error"`
-	EntrustNumErr                       string `code:"10039" msg:"Order amount parameter error"`
-	UserIsLock                          string `code:"10041" msg:"User status is locked"`
-	SearchTimeErr                       string `code:"10042" msg:"Incorrect search time eg: 2006-01-02"`
+	WithdrawalFeesIsError               string `code:"10028" msg:"Abnormal withdrawal fee"`
+	LoginFailed                         string `code:"10029" msg:"Service exception, login failed!"`
+	MultipleIsError                     string `code:"10030" msg:"The multiple value is illegal, not the value set by the system!"`
+	ContractIsNotCorrect                string `code:"10031" msg:"The contract information is not set correctly, please contact the administrator to set the corresponding contract information for the transaction pair"`
+	UsersWalletLock                     string `code:"10032" msg:"Sorry, your wallet is temporarily locked"`
+	LiquidationUnsuccessful             string `code:"10033" msg:"Unsuccessful"`
+	OptionContractSecondsNotCorrect     string `code:"10034" msg:"Incorrect number of seconds in options contract"`
+	OptionContractStatus                string `code:"10035" msg:"This option contract has not been activated yet!"`
+	FeePerpetualContractIsError         string `code:"10036" msg:"The perpetual contract fee has not been set, please contact the operation configuration!"`
+	MinAmountIsNotExist                 string `code:"10037" msg:"No minimum withdrawal amount has been set, please contact Operation Configuration!"`
+	OptionContractProfitRatioNotCorrect string `code:"10038" msg:"The option contract rate of return is incorrect"`
+	ApplyBuySetupStatusIsNotExist       string `code:"10039" msg:"The subscription currency has not been opened yet"`
+	CurrencyTransactionIsExist          string `code:"10040" msg:"The system temporarily does not allow transactions in the currency to be changed"`
+	LimitPriceErr                       string `code:"10041" msg:"Limit price parameter error"`
+	EntrustNumErr                       string `code:"10042" msg:"Order amount parameter error"`
+	CurrencyTypeIsNotAllowed            string `code:"10043" msg:"This type of transaction is temporarily not allowed for this transaction pair, please contact the operation if necessary"`
+	UserIsLock                          string `code:"10044" msg:"User status is locked"`
+	SearchTimeErr                       string `code:"10045" msg:"Incorrect search time eg: 2006-01-02"`
 }

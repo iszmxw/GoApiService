@@ -31,22 +31,22 @@ type ErrorCode1 struct {
 	PasswordEditError                   string `code:"10025" msg:"登录密码修改失败"`
 	OperationFailed                     string `code:"10026" msg:"操作失败"`
 	FeeOptionContractIsError            string `code:"10027" msg:"期权交易合约手续费未设置，请里联系运营配置"`
-	WithdrawalFeesIsError               string `code:"10027" msg:"提现手续费异常"`
-	LoginFailed                         string `code:"10028" msg:"服务异常，登录失败！"`
-	MultipleIsError                     string `code:"10029" msg:"倍数值不合法，不是系统设定的值！"`
-	ContractIsNotCorrect                string `code:"10030" msg:"合约信息未正确设置，请联系管理员设置该交易对相应的合约信息"`
-	UsersWalletLock                     string `code:"10031" msg:"对不起您的钱包暂时已锁定"`
-	LiquidationUnsuccessful             string `code:"10032" msg:"平仓失败"`
-	OptionContractSecondsNotCorrect     string `code:"10033" msg:"期权合约秒数不正确"`
-	OptionContractStatus                string `code:"10034" msg:"该期权合约暂未启用！"`
-	FeePerpetualContractIsError         string `code:"10035" msg:"永续合约手续费未设置，请联系运营配置！"`
-	MinAmountIsNotExist                 string `code:"10036" msg:"未设置最小提现金额，请联系运营配置！"`
-	OptionContractProfitRatioNotCorrect string `code:"10037" msg:"期权合约收益率不正确"`
-	ApplyBuySetupStatusIsNotExist       string `code:"10037" msg:"申购币种暂未开启"`
-	CurrencyTransactionIsExist          string `code:"10038" msg:"系统暂不允该改币种交易"`
-	LimitPriceErr                       string `code:"10039" msg:"限价参数错误"`
-	EntrustNumErr                       string `code:"10039" msg:"委托量参数错误"`
-	CurrencyTypeIsNotAllowed            string `code:"10040" msg:"该交易对暂不允许该类型交易，如有需要请联系运营"`
-	UserIsLock                          string `code:"10041" msg:"用户状态已锁定"`
-	SearchTimeErr                       string `code:"10042" msg:"搜索时间格式不正确 eg: 2006-01-02"`
+	WithdrawalFeesIsError               string `code:"10028" msg:"提现手续费异常"`
+	LoginFailed                         string `code:"10029" msg:"服务异常，登录失败！"`
+	MultipleIsError                     string `code:"10030" msg:"倍数值不合法，不是系统设定的值！"`
+	ContractIsNotCorrect                string `code:"10031" msg:"合约信息未正确设置，请联系管理员设置该交易对相应的合约信息"`
+	UsersWalletLock                     string `code:"10032" msg:"对不起您的钱包暂时已锁定"`
+	LiquidationUnsuccessful             string `code:"10033" msg:"平仓失败"`
+	OptionContractSecondsNotCorrect     string `code:"10034" msg:"期权合约秒数不正确"`
+	OptionContractStatus                string `code:"10035" msg:"该期权合约暂未启用！"`
+	FeePerpetualContractIsError         string `code:"10036" msg:"永续合约手续费未设置，请联系运营配置！"`
+	MinAmountIsNotExist                 string `code:"10037" msg:"未设置最小提现金额，请联系运营配置！"`
+	OptionContractProfitRatioNotCorrect string `code:"10038" msg:"期权合约收益率不正确"`
+	ApplyBuySetupStatusIsNotExist       string `code:"10039" msg:"申购币种暂未开启"`
+	CurrencyTransactionIsExist          string `code:"10040" msg:"系统暂不允该改币种交易"`
+	LimitPriceErr                       string `code:"10041" msg:"限价参数错误"`
+	EntrustNumErr                       string `code:"10042" msg:"委托量参数错误"`
+	CurrencyTypeIsNotAllowed            string `code:"10043" msg:"该交易对暂不允许该类型交易，如有需要请联系运营"`
+	UserIsLock                          string `code:"10044" msg:"用户状态已锁定"`
+	SearchTimeErr                       string `code:"10045" msg:"搜索时间格式不正确 eg: 2006-01-02"`
 }

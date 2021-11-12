@@ -30,7 +30,10 @@ func (h *UserController) UserInfoHandler(c *gin.Context) {
 
 func (h *UserController) LangSetupHandler(c *gin.Context) { // 初始化数据模型结构体
 	userId, _ := c.Get("user_id")
-	var params requests.Lang
+	var (
+		params requests.Lang
+		user   models.User
+	)
 	// 绑定接收的 json 数据到结构体中
 	_ = c.Bind(&params)
 	// 数据验证
@@ -53,7 +56,6 @@ func (h *UserController) LangSetupHandler(c *gin.Context) { // 初始化数据�
 	}
 	// 开始事务
 	DB := mysql.DB.Debug().Begin()
-	var user models.User
 	user.Language = params.Language
 	err := DB.Model(&models.User{}).Where(map[string]interface{}{"id": fmt.Sprintf("%v", userId)}).Updates(user).Error
 	if err != nil {
@@ -68,7 +70,10 @@ func (h *UserController) LangSetupHandler(c *gin.Context) { // 初始化数据�
 }
 
 func (h *UserController) PayPasswordSetupHandler(c *gin.Context) {
-	var params requests.PayPassword
+	var (
+		params requests.PayPassword
+		user   models.User
+	)
 	// 绑定接收的 json 数据到结构体中
 	_ = c.Bind(&params)
 	//// 数据验证
@@ -96,7 +101,6 @@ func (h *UserController) PayPasswordSetupHandler(c *gin.Context) {
 
 	// 开始事务
 	DB := mysql.DB.Debug().Begin()
-	var user models.User
 	user.PayPassword = helpers.Md5(params.PayPassword)
 	err := DB.Model(&models.User{}).Where(map[string]interface{}{"email": params.Email}).Updates(user).Error
 	if err != nil {
@@ -111,7 +115,10 @@ func (h *UserController) PayPasswordSetupHandler(c *gin.Context) {
 
 // EditPasswordHandler 修改密码
 func (h *UserController) EditPasswordHandler(c *gin.Context) {
-	var params requests.Password
+	var (
+		params requests.Password // 接收请求参数
+		user   models.User       //  用户模型
+	)
 	// 绑定接收的 json 数据到结构体中
 	_ = c.Bind(&params)
 	//// 数据验证
@@ -138,7 +145,6 @@ func (h *UserController) EditPasswordHandler(c *gin.Context) {
 	}
 	// 开始事务
 	DB := mysql.DB.Debug().Begin()
-	var user models.User
 	user.Password = helpers.Md5(params.Password)
 	err := DB.Model(&models.User{}).Where(map[string]interface{}{"email": params.Email}).Updates(user).Error
 	if err != nil {

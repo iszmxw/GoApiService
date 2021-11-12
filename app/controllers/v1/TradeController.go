@@ -25,9 +25,9 @@ type TradeController struct {
 // SysTypeHandler 获取类型
 func (h *TradeController) SysTypeHandler(c *gin.Context) {
 	var (
-		data   []response.GlobalsTypes
-		result []map[string]interface{}
-		Img    string
+		data   []response.GlobalsTypes  // 查询系统配置
+		result []map[string]interface{} // 响应结果
+		Img    string                   // 钱包地址图片
 	)
 	mysql.DB.Debug().Model(models.Globals{}).Where("fields IN ?", []string{"omni_wallet_address", "erc20_wallet_address", "trc20_wallet_address"}).Find(&data)
 	if len(data) > 0 {
@@ -276,11 +276,13 @@ func (h *TradeController) WalletAddressListHandler(c *gin.Context) {
 // WithdrawHandler 提币
 func (h *TradeController) WithdrawHandler(c *gin.Context) {
 	var (
-		params        requests.AddWithdraw
-		AddData       models.Withdraw
-		TradingPair   response.TradingPair
-		WalletAddress response.WalletAddress
-		UserStatus    response.User // 查询用户状态
+		params         requests.AddWithdraw    // 接收请求参数
+		TradingPair    response.TradingPair    // 查询交易对
+		WalletAddress  response.WalletAddress  // 查询钱包地址
+		UserStatus     response.User           // 查询用户状态
+		UsersWallet    response.UsersWallet    // 查询现货钱包
+		WithdrawalFees response.WithdrawalFees // 查询提现费率
+		AddData        models.Withdraw         // 添加提现数据
 	)
 	_ = c.Bind(&params)
 	// 数据验证
@@ -304,7 +306,6 @@ func (h *TradeController) WithdrawHandler(c *gin.Context) {
 		return
 	}
 	// 检查现货钱包余额是否充足
-	var UsersWallet response.UsersWallet
 	DB.Model(models.UsersWallet{}).
 		Where("trading_pair_id", "1").
 		Where("type", "1").
@@ -315,7 +316,6 @@ func (h *TradeController) WithdrawHandler(c *gin.Context) {
 		echo.Error(c, "InsufficientBalance", "")
 		return
 	}
-	var WithdrawalFees response.WithdrawalFees
 	DB.Model(models.Globals{}).Where("fields", "withdrawal_fees").Find(&WithdrawalFees)
 	if WithdrawalFees.Value < 0 {
 		echo.Error(c, "WithdrawalFeesIsError", "")
@@ -386,7 +386,14 @@ func (h *TradeController) GetCurrencyHandler(c *gin.Context) {
 // SubmitApplyBuyHandler 交易相关-申购
 func (h *TradeController) SubmitApplyBuyHandler(c *gin.Context) {
 	userInfo, _ := c.Get("user")
-	var params requests.SubmitApplyBuy
+	var (
+		params         requests.SubmitApplyBuy // 接收请求参数
+		ApplyBuySetup  response.ApplyBuySetup  // 查询申购币种的信息
+		GetUsersWallet response.UsersWallet    // 查询申购对应币种的钱包
+		UsersWallet    response.UsersWallet    // 查询消费的钱包信息
+		data           models.WalletStream     // 交易流水创建
+		data1          models.WalletStream     // 交易流水创建
+	)
 	_ = c.Bind(&params)
 	// 数据验证
 	vErr := validator.Validate.Struct(params)
@@ -403,7 +410,6 @@ func (h *TradeController) SubmitApplyBuyHandler(c *gin.Context) {
 	ApplyBuy.GetCurrencyId = params.GetCurrencyId       // 申购购买币种id
 	ApplyBuy.GetCurrencyNum = params.GetCurrencyNum     // 申购购买数量
 	DB := mysql.DB.Debug().Begin()
-	var ApplyBuySetup response.ApplyBuySetup
 	DB.Model(models.ApplyBuySetup{}).Where("id", params.GetCurrencyId).Find(&ApplyBuySetup)
 	if ApplyBuySetup.Id <= 0 {
 		echo.Error(c, "ApplyBuySetupIsNotExist", "")
@@ -435,7 +441,6 @@ func (h *TradeController) SubmitApplyBuyHandler(c *gin.Context) {
 	Amount := ApplyBuySetup.IssuePrice * params.GetCurrencyNum
 
 	// 查询用户是否有该钱包
-	var GetUsersWallet response.UsersWallet
 	DB.Model(models.UsersWallet{}).
 		Where("user_id", userId).
 		Where("trading_pair_name", ApplyBuy.GetCurrencyName).
@@ -447,7 +452,6 @@ func (h *TradeController) SubmitApplyBuyHandler(c *gin.Context) {
 		return
 	}
 	// 查询用户钱包信息
-	var UsersWallet response.UsersWallet
 	DB.Model(models.UsersWallet{}).
 		Where("user_id", userId).
 		Where("trading_pair_id", "1").
@@ -494,7 +498,6 @@ func (h *TradeController) SubmitApplyBuyHandler(c *gin.Context) {
 	// 修改钱包余额
 
 	// 创建钱包消费流水
-	var data models.WalletStream
 	data.Way = "2"                                    // 流转方式 1 收入 2 支出
 	data.Type = "5"                                   // 流转类型 0 未知 1 充值 2 提现 3 划转 4 快捷买币 5 空投 6 现货 7 合约 8 期权 9 手续费
 	data.TypeDetail = "6"                             // 流转详细类型 0 未知 1 USDT充值 2银行卡充值 3现货划转合约 4合约划转现货 5提现 6空投支出 7空投收入 8现货支出 9现货收入 10合约支出 11合约收入 12期权支出 13期权收入
@@ -514,7 +517,6 @@ func (h *TradeController) SubmitApplyBuyHandler(c *gin.Context) {
 	}
 
 	// 创建钱包收入流水
-	var data1 models.WalletStream
 	data1.Way = "1"                                        // 流转方式 1 收入 2 支出
 	data1.Type = "5"                                       // 流转类型 0 未知 1 充值 2 提现 3 划转 4 快捷买币 5 空投 6 现货 7 合约 8 期权 9 手续费
 	data1.TypeDetail = "7"                                 // 流转详细类型 0 未知 1 USDT充值 2银行卡充值 3现货划转合约 4合约划转现货 5提现 6空投支出 7空投收入 8现货支出 9现货收入 10合约支出 11合约收入 12期权支出 13期权收入

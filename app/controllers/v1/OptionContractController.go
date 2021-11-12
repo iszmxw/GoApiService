@@ -290,7 +290,13 @@ func (h *OptionContractController) TradeHandler(c *gin.Context) {
 
 // LiquidationHandler 期权合约-平仓
 func (h *OptionContractController) LiquidationHandler(c *gin.Context) {
-	var params requests.OptionContractTransactionLiquidation
+	var (
+		params      requests.OptionContractTransactionLiquidation // 请求参数
+		User        response.User                                 // 查询用户数据
+		result      response.OptionTransactionKline               // 查询期权交易数据
+		UsersWallet response.UsersWallet                          // 查询钱包信息
+		data        models.WalletStream                           // 交易流水
+	)
 	_ = c.Bind(&params) // 数据验证
 	vErr := validator.Validate.Struct(params)
 	if vErr != nil {
@@ -299,7 +305,6 @@ func (h *OptionContractController) LiquidationHandler(c *gin.Context) {
 		return
 	}
 	userInfo, _ := c.Get("user")
-	var result response.OptionTransactionKline
 	DB := mysql.DB.Begin().Debug()
 	DB.Model(models.OptionContractTransaction{}).
 		Where(models.Prefix("$_option_contract_transaction.id"), params.Id).
@@ -352,7 +357,6 @@ func (h *OptionContractController) LiquidationHandler(c *gin.Context) {
 	}
 
 	// 根据风控来交易，不看k线图结果
-	var User response.User
 	DB.Model(models.User{}).Where("id", result.UserId).Find(&User)
 	// User.RiskProfit 风控 0-无 1-盈 2-亏  根据风控来交易，不看k线图结果   ||    购买结果和实际结果一样 盈利了
 	// 盈利：本金+（本金*盈利率）-手续费 handle_fee
@@ -382,7 +386,6 @@ func (h *OptionContractController) LiquidationHandler(c *gin.Context) {
 			where := cmap.New().Items()
 			where["user_id"] = result.UserId
 			where["trading_pair_id"] = result.TradingPairId
-			var UsersWallet response.UsersWallet
 			DB.Model(models.UsersWallet{}).Where(where).Find(&UsersWallet)
 			// 查询用户当前钱包余额
 
@@ -399,7 +402,6 @@ func (h *OptionContractController) LiquidationHandler(c *gin.Context) {
 			// 修改钱包余额
 
 			// 创建钱包流水
-			var data models.WalletStream
 			data.Way = "1"                                                 // 流转方式 1 收入 2 支出
 			data.Type = "7"                                                // 流转类型 0 未知 1 充值 2 提现 3 划转 4 快捷买币 5 空投 6 现货 7 合约 8 期权 9 手续费
 			data.TypeDetail = "11"                                         // 流转详细类型 0 未知 1 USDT充值 2银行卡充值 3现货划转合约 4合约划转现货 5提现 6空投支出 7空投收入 8现货支出 9现货收入 10合约支出 11合约收入 12期权支出 13期权收入

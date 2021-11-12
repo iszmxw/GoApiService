@@ -31,22 +31,22 @@ type ErrorCode struct {
 	PasswordEditError                   string `code:"10025" msg:"登錄密碼修改失敗"`
 	OperationFailed                     string `code:"10026" msg:"操作失敗"`
 	FeeOptionContractIsError            string `code:"10027" msg:"期權交易合約手續費未設置，請里聯系運營配置"`
-	WithdrawalFeesIsError               string `code:"10027" msg:"提現手續費異常"`
-	LoginFailed                         string `code:"10028" msg:"服務異常，登錄失敗！"`
-	MultipleIsError                     string `code:"10029" msg:"倍數值不合法，不是系統設定的值！"`
-	ContractIsNotCorrect                string `code:"10030" msg:"合約信息未正確設置，請聯繫管理員設置該交易對相應的合約信息"`
-	UsersWalletLock                     string `code:"10031" msg:"對不起，您的錢包暫時已被鎖定"`
-	LiquidationUnsuccessful             string `code:"10032" msg:"平倉失敗"`
-	OptionContractSecondsNotCorrect     string `code:"10033" msg:"期權合約秒數不正確"`
-	OptionContractStatus                string `code:"10034" msg:"該期權合約暫未啟用！"`
-	FeePerpetualContractIsError         string `code:"10035" msg:"永續合約手續費未設置，請聯繫運營配置！"`
-	MinAmountIsNotExist                 string `code:"10036" msg:"未設置最小提現金額，請聯繫運營配置！"`
-	OptionContractProfitRatioNotCorrect string `code:"10037" msg:"期權合約收益率不正確"`
-	ApplyBuySetupStatusIsNotExist       string `code:"10037" msg:"申購幣種暫未開啟"`
-	CurrencyTransactionIsExist          string `code:"10038" msg:"系統暫不允該改幣種交易"`
-	LimitPriceErr                       string `code:"10039" msg:"限價參數錯誤"`
-	EntrustNumErr                       string `code:"10039" msg:"委託量參數錯誤"`
-	CurrencyTypeIsNotAllowed            string `code:"10040" msg:"該交易對暫不允許該類型交易，如有需要請聯繫運營"`
-	UserIsLock                          string `code:"10041" msg:"用戶狀態已鎖定"`
-	SearchTimeErr                       string `code:"10042" msg:"搜索時間格式不正確 eg: 2006-01-02"`
+	WithdrawalFeesIsError               string `code:"10028" msg:"提現手續費異常"`
+	LoginFailed                         string `code:"10029" msg:"服務異常，登錄失敗！"`
+	MultipleIsError                     string `code:"10030" msg:"倍數值不合法，不是系統設定的值！"`
+	ContractIsNotCorrect                string `code:"10031" msg:"合約信息未正確設置，請聯繫管理員設置該交易對相應的合約信息"`
+	UsersWalletLock                     string `code:"10032" msg:"對不起，您的錢包暫時已被鎖定"`
+	LiquidationUnsuccessful             string `code:"10033" msg:"平倉失敗"`
+	OptionContractSecondsNotCorrect     string `code:"10034" msg:"期權合約秒數不正確"`
+	OptionContractStatus                string `code:"10035" msg:"該期權合約暫未啟用！"`
+	FeePerpetualContractIsError         string `code:"10036" msg:"永續合約手續費未設置，請聯繫運營配置！"`
+	MinAmountIsNotExist                 string `code:"10037" msg:"未設置最小提現金額，請聯繫運營配置！"`
+	OptionContractProfitRatioNotCorrect string `code:"10038" msg:"期權合約收益率不正確"`
+	ApplyBuySetupStatusIsNotExist       string `code:"10039" msg:"申購幣種暫未開啟"`
+	CurrencyTransactionIsExist          string `code:"10040" msg:"系統暫不允該改幣種交易"`
+	LimitPriceErr                       string `code:"10041" msg:"限價參數錯誤"`
+	EntrustNumErr                       string `code:"10042" msg:"委託量參數錯誤"`
+	CurrencyTypeIsNotAllowed            string `code:"10043" msg:"該交易對暫不允許該類型交易，如有需要請聯繫運營"`
+	UserIsLock                          string `code:"10044" msg:"用戶狀態已鎖定"`
+	SearchTimeErr                       string `code:"10045" msg:"搜索時間格式不正確 eg: 2006-01-02"`
 }

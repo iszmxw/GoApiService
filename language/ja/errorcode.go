@@ -31,19 +31,22 @@ type ErrorCode struct {
 	PasswordEditError                   string `code:"10025" msg:"ログインパスワードの変更に失敗しました"`
 	OperationFailed                     string `code:"10026" msg:"操作に失敗しました"`
 	FeeOptionContractIsError            string `code:"10027" msg:"オプション取引契約手数料が設定されていませんので、こちらの運用構成にお問い合わせください"`
-	WithdrawalFeesIsError               string `code:"10027" msg:"異常な引き出し手数料"`
-	LoginFailed                         string `code:"10028" msg:"サービス例外、ログインに失敗しました！"`
-	MultipleIsError                     string `code:"10029" msg:"複数の値は不正であり、システムによって設定された値ではありません！"`
-	ContractIsNotCorrect                string `code:"10030" msg:"契約情報が正しく設定されていません。管理者に連絡して、トランザクションペアに対応する契約情報を設定してください。"`
-	UsersWalletLock                     string `code:"10031" msg:"申し訳ありませんが、ウォレットは一時的にロックされています"`
-	LiquidationUnsuccessful             string `code:"10032" msg:"失敗"`
-	OptionContractSecondsNotCorrect     string `code:"10033" msg:"オプション契約の秒数が正しくありません"`
-	OptionContractStatus                string `code:"10034" msg:"このオプション契約はまだ有効化されていません！"`
-	FeePerpetualContractIsError         string `code:"10035" msg:"永久契約料は設定されていませんので、運用構成にお問い合わせください！"`
-	MinAmountIsNotExist                 string `code:"10036" msg:"最小引き出し額は設定されていません。運用構成にお問い合わせください。"`
-	OptionContractProfitRatioNotCorrect string `code:"10037" msg:"オプション契約の収益率が正しくない"`
-	ApplyBuySetupStatusIsNotExist       string `code:"10037" msg:"サブスクリプション通貨はまだ開かれていません"`
-	CurrencyTransactionIsExist          string `code:"10038" msg:"システムは一時的に通貨での取引を変更することを許可しません"`
-	LimitPriceErr                       string `code:"10039" msg:"指値パラメータエラー"`
-	EntrustNumErr                       string `code:"10039" msg:"注文金額パラメータエラー"`
+	WithdrawalFeesIsError               string `code:"10028" msg:"異常な引き出し手数料"`
+	LoginFailed                         string `code:"10029" msg:"サービス例外、ログインに失敗しました！"`
+	MultipleIsError                     string `code:"10030" msg:"複数の値は不正であり、システムによって設定された値ではありません！"`
+	ContractIsNotCorrect                string `code:"10031" msg:"契約情報が正しく設定されていません。管理者に連絡して、トランザクションペアに対応する契約情報を設定してください。"`
+	UsersWalletLock                     string `code:"10032" msg:"申し訳ありませんが、ウォレットは一時的にロックされています"`
+	LiquidationUnsuccessful             string `code:"10033" msg:"失敗"`
+	OptionContractSecondsNotCorrect     string `code:"10034" msg:"オプション契約の秒数が正しくありません"`
+	OptionContractStatus                string `code:"10035" msg:"このオプション契約はまだ有効化されていません！"`
+	FeePerpetualContractIsError         string `code:"10036" msg:"永久契約料は設定されていませんので、運用構成にお問い合わせください！"`
+	MinAmountIsNotExist                 string `code:"10037" msg:"最小引き出し額は設定されていません。運用構成にお問い合わせください。"`
+	OptionContractProfitRatioNotCorrect string `code:"10038" msg:"オプション契約の収益率が正しくない"`
+	ApplyBuySetupStatusIsNotExist       string `code:"10039" msg:"サブスクリプション通貨はまだ開かれていません"`
+	CurrencyTransactionIsExist          string `code:"10040" msg:"システムは一時的に通貨での取引を変更することを許可しません"`
+	LimitPriceErr                       string `code:"10041" msg:"指値パラメータエラー"`
+	EntrustNumErr                       string `code:"10042" msg:"注文金額パラメータエラー"`
+	CurrencyTypeIsNotAllowed            string `code:"10043" msg:"このタイプのトランザクションは、このトランザクションペアでは一時的に許可されていません。必要に応じてオペレーションに連絡してください"`
+	UserIsLock                          string `code:"10044" msg:"ユーザーステータスはロックされています"`
+	SearchTimeErr                       string `code:"10045" msg:"検索時間の形式が正しくありません。例：2006-01-02"`
 }

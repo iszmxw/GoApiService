@@ -31,19 +31,22 @@ type ErrorCode struct {
 	PasswordEditError                   string `code:"10025" msg:"Falló la modificación de la contraseña de inicio de sesión fallida"`
 	OperationFailed                     string `code:"10026" msg:"operación fallida"`
 	FeeOptionContractIsError            string `code:"10027" msg:"No se ha establecido la tarifa del contrato de transacción de la opción, comuníquese con la configuración de la operación aquí"`
-	WithdrawalFeesIsError               string `code:"10027" msg:"Tarifa de retiro anormal"`
-	LoginFailed                         string `code:"10028" msg:"¡Excepción de servicio, error de inicio de sesión!"`
-	MultipleIsError                     string `code:"10029" msg:"¡El valor múltiple es ilegal, no el valor establecido por el sistema!"`
-	ContractIsNotCorrect                string `code:"10030" msg:"La información del contrato no está configurada correctamente, comuníquese con el administrador para configurar la información del contrato correspondiente para el par de transacciones"`
-	UsersWalletLock                     string `code:"10031" msg:"Lo sentimos, tu billetera está bloqueada temporalmente"`
-	LiquidationUnsuccessful             string `code:"10032" msg:"Fracasado"`
-	OptionContractSecondsNotCorrect     string `code:"10033" msg:"Número incorrecto de segundos en el contrato de opciones"`
-	OptionContractStatus                string `code:"10034" msg:"¡Este contrato de opción aún no se ha activado!"`
-	FeePerpetualContractIsError         string `code:"10035" msg:"No se ha establecido la tarifa del contrato perpetuo, póngase en contacto con la configuración de la operación."`
-	MinAmountIsNotExist                 string `code:"10036" msg:"No se ha establecido un monto mínimo de retiro, comuníquese con Configuración de operación."`
-	OptionContractProfitRatioNotCorrect string `code:"10037" msg:"La tasa de retorno del contrato de opción es incorrecta"`
-	ApplyBuySetupStatusIsNotExist       string `code:"10037" msg:"La moneda de suscripción aún no se ha abierto"`
-	CurrencyTransactionIsExist          string `code:"10038" msg:"El sistema no permite temporalmente que se modifiquen las transacciones en la moneda."`
-	LimitPriceErr                       string `code:"10039" msg:"Error de parámetro de precio límite"`
-	EntrustNumErr                       string `code:"10039" msg:"Error de parámetro de importe de pedido"`
+	WithdrawalFeesIsError               string `code:"10028" msg:"Tarifa de retiro anormal"`
+	LoginFailed                         string `code:"10029" msg:"¡Excepción de servicio, error de inicio de sesión!"`
+	MultipleIsError                     string `code:"10030" msg:"¡El valor múltiple es ilegal, no el valor establecido por el sistema!"`
+	ContractIsNotCorrect                string `code:"10031" msg:"La información del contrato no está configurada correctamente, comuníquese con el administrador para configurar la información del contrato correspondiente para el par de transacciones"`
+	UsersWalletLock                     string `code:"10032" msg:"Lo sentimos, tu billetera está bloqueada temporalmente"`
+	LiquidationUnsuccessful             string `code:"10033" msg:"Fracasado"`
+	OptionContractSecondsNotCorrect     string `code:"10034" msg:"Número incorrecto de segundos en el contrato de opciones"`
+	OptionContractStatus                string `code:"10035" msg:"¡Este contrato de opción aún no se ha activado!"`
+	FeePerpetualContractIsError         string `code:"10036" msg:"No se ha establecido la tarifa del contrato perpetuo, póngase en contacto con la configuración de la operación."`
+	MinAmountIsNotExist                 string `code:"10037" msg:"No se ha establecido un monto mínimo de retiro, comuníquese con Configuración de operación."`
+	OptionContractProfitRatioNotCorrect string `code:"10038" msg:"La tasa de retorno del contrato de opción es incorrecta"`
+	ApplyBuySetupStatusIsNotExist       string `code:"10039" msg:"La moneda de suscripción aún no se ha abierto"`
+	CurrencyTransactionIsExist          string `code:"10040" msg:"El sistema no permite temporalmente que se modifiquen las transacciones en la moneda."`
+	LimitPriceErr                       string `code:"10041" msg:"Error de parámetro de precio límite"`
+	EntrustNumErr                       string `code:"10042" msg:"Error de parámetro de importe de pedido"`
+	CurrencyTypeIsNotAllowed            string `code:"10043" msg:"Este tipo de transacción no está permitido temporalmente para este par de transacciones, comuníquese con la operación si es necesario"`
+	UserIsLock                          string `code:"10044" msg:"El estado del usuario está bloqueado"`
+	SearchTimeErr                       string `code:"10045" msg:"El formato de la hora de búsqueda es incorrecto, por ejemplo: 2006-01-02"`
 }

@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	cmap "github.com/orcaman/concurrent-map"
 	"goapi/app/models"
 	"goapi/app/requests"
 	"goapi/app/response"
@@ -22,18 +21,19 @@ type AssetsStreamController struct {
 // AssetsStreamHandler 个人资产
 func (h *AssetsStreamController) AssetsStreamHandler(c *gin.Context) {
 	userId, _ := c.Get("user_id")
-	where := cmap.New().Items()
-	where["user_id"] = userId
 	var result []response.UsersWallet
 	DB := mysql.DB.Debug()
-	DB.Model(models.UsersWallet{}).Where(where).Order("id DESC").Find(&result)
+	DB.Model(models.UsersWallet{}).Where("user_id", userId).Order("id DESC").Find(&result)
 	echo.Success(c, result, "", "")
 }
 
 // AssetsTypeHandler 资产类型，获取单个币种余额
 func (h *AssetsStreamController) AssetsTypeHandler(c *gin.Context) {
 	// 初始化数据模型结构体
-	var params requests.TradingPair
+	var (
+		params requests.TradingPair
+		result response.UsersWallet
+	)
 	_ = c.Bind(&params)
 	// 数据验证
 	vErr := validator.Validate.Struct(params)
@@ -43,7 +43,6 @@ func (h *AssetsStreamController) AssetsTypeHandler(c *gin.Context) {
 		return
 	}
 	userId, _ := c.Get("user_id")
-	var result response.UsersWallet
 	DB := mysql.DB.Debug()
 	DB.Model(models.UsersWallet{}).
 		Where("type", params.Type).                     // 钱包类型：1现货 2合约
@@ -60,9 +59,12 @@ func (h *AssetsStreamController) AssetsTypeHandler(c *gin.Context) {
 // TransferHandler 划转
 func (h *AssetsStreamController) TransferHandler(c *gin.Context) {
 	var (
-		params       requests.Transfer
-		UsersWallet1 response.UsersWallet
-		UsersWallet2 response.UsersWallet
+		params                     requests.Transfer    // 请求参数
+		UsersWallet1               response.UsersWallet // 查询钱包1数据
+		UsersWallet2               response.UsersWallet // 查询钱包2数据
+		data1                      models.WalletStream
+		data2                      models.WalletStream
+		AmountAfter1, AmountAfter2 float64
 	)
 	_ = c.Bind(&params)
 	userId, _ := c.Get("user_id")
@@ -93,12 +95,9 @@ func (h *AssetsStreamController) TransferHandler(c *gin.Context) {
 	}
 
 	// 创建钱包流水
-	var data1 models.WalletStream
-	var data2 models.WalletStream
 	data1.UserId = userId.(int)                                       // 用户id
 	data1.Email = userInfo.(map[string]interface{})["email"].(string) // 用户邮箱
 	data1.Amount = params.Num                                         // 流转金额
-	var AmountAfter1, AmountAfter2 float64
 	Num, _ := strconv.ParseFloat(params.Num, 64)
 	// 1 从现货账户划转到合约账户  2 从合约账户划转到现货账户
 	switch params.Type {
