@@ -47,4 +47,6 @@ type ErrorCode1 struct {
 	LimitPriceErr                       string `code:"10039" msg:"限价参数错误"`
 	EntrustNumErr                       string `code:"10039" msg:"委托量参数错误"`
 	CurrencyTypeIsNotAllowed            string `code:"10040" msg:"该交易对暂不允许该类型交易，如有需要请联系运营"`
+	UserIsLock                          string `code:"10041" msg:"用户状态已锁定"`
+	SearchTimeErr                       string `code:"10042" msg:"搜索时间格式不正确 eg: 2006-01-02"`
 }

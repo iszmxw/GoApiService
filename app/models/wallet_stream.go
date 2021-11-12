@@ -6,6 +6,8 @@ import (
 	"goapi/app/response"
 	"goapi/pkg/config"
 	"goapi/pkg/helpers"
+	"goapi/pkg/logger"
+	"goapi/pkg/mysql"
 	"gorm.io/gorm"
 	"strconv"
 )
@@ -101,4 +103,34 @@ func (m *WalletStream) SetAddData(Way, Type, TypeDetail string, addData interfac
 		return nil, errors.New("流转类型值异常")
 	}
 	return data, nil
+}
+
+// GetPaginate 获取分页数据，返回错误
+func (m *WalletStream) GetPaginate(where map[string]interface{}, orderBy interface{}, Page, Limit int64, lists *PageList) {
+	var (
+		result []response.WalletStream
+	)
+	// 获取表名
+	tableName := m.TableName()
+	table := mysql.DB.Debug().Table(Prefix(tableName))
+	table = table.Where(where)
+	table.Count(&lists.Total)
+	// 设置分页参数
+	lists.CurrentPage = Page
+	lists.PageSize = Limit
+	InitPageList(lists)
+	// order by
+	if len(orderBy.(string)) > 0 {
+		table = table.Order(orderBy)
+	} else {
+		table = table.Order("id desc")
+	}
+	table = table.Offset(int(lists.Offset))
+	table = table.Limit(int(lists.PageSize))
+	if err := table.Scan(&result).Error; err != nil {
+		// 记录错误
+		logger.Error(err)
+	} else {
+		lists.Data = result
+	}
 }

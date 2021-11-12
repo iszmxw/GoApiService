@@ -10,7 +10,10 @@ type TradingPair struct {
 type ListAssetsStream struct {
 	TradingPairId string `json:"trading_pair_id" form:"trading_pair_id" validate:"omitempty,numeric"` // 交易对ID
 	OrderType     string `json:"order_type" form:"order_type" validate:"omitempty,numeric"`           // 流转类型 1 充值 2 提现 3 划转 4 快捷买币 5 空投 6 现货 7 合约 8 期权 9 手续费
-	Time          string `json:"time" form:"time" validate:"omitempty,numeric"`                       // 订单时间最近七天（7, 15, 30）
+	StartTime     string `json:"start_time" form:"start_time"`                                        // 开始时间
+	EndTime       string `json:"end_time" form:"end_time"`                                            // 结束时间
+	Page          int    `json:"page" form:"page" validate:"omitempty,numeric"`                       // 第几页
+	Limit         int    `json:"limit" form:"limit" validate:"omitempty,numeric"`                     // 获取多少条
 }
 
 // WalletAddressAdd 提币地址配置

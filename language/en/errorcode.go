@@ -46,4 +46,6 @@ type ErrorCode struct {
 	CurrencyTransactionIsExist          string `code:"10038" msg:"The system temporarily does not allow transactions in the currency to be changed"`
 	LimitPriceErr                       string `code:"10039" msg:"Limit price parameter error"`
 	EntrustNumErr                       string `code:"10039" msg:"Order amount parameter error"`
+	UserIsLock                          string `code:"10041" msg:"User status is locked"`
+	SearchTimeErr                       string `code:"10042" msg:"Incorrect search time eg: 2006-01-02"`
 }

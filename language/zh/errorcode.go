@@ -47,4 +47,6 @@ type ErrorCode struct {
 	LimitPriceErr                       string `code:"10039" msg:"限價參數錯誤"`
 	EntrustNumErr                       string `code:"10039" msg:"委託量參數錯誤"`
 	CurrencyTypeIsNotAllowed            string `code:"10040" msg:"該交易對暫不允許該類型交易，如有需要請聯繫運營"`
+	UserIsLock                          string `code:"10041" msg:"用戶狀態已鎖定"`
+	SearchTimeErr                       string `code:"10042" msg:"搜索時間格式不正確 eg: 2006-01-02"`
 }

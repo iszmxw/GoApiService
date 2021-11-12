@@ -7,6 +7,7 @@ import (
 	"goapi/app/requests"
 	"goapi/app/response"
 	"goapi/pkg/echo"
+	"goapi/pkg/logger"
 	"goapi/pkg/mysql"
 	"goapi/pkg/validator"
 	"time"
@@ -66,8 +67,9 @@ func (h *OrderController) TypeHandler(c *gin.Context) {
 // ListHandler 流水列表
 func (h *OrderController) ListHandler(c *gin.Context) {
 	var (
-		params requests.ListAssetsStream
-		list   []response.WalletStream
+		params   requests.ListAssetsStream
+		pageList models.PageList // 返回数据
+		result   []response.WalletStream
 	)
 	_ = c.Bind(&params)
 	// 数据验证
@@ -88,28 +90,32 @@ func (h *OrderController) ListHandler(c *gin.Context) {
 		where["type"] = params.OrderType
 	}
 	//获取两天前的时间
-	currentTime := time.Now()
 	DB := mysql.DB.Debug()
 	DB = DB.Model(models.WalletStream{})
-	if len(params.Time) > 0 {
-		var oldTime string
-		switch params.Time {
-		case "7":
-			oldTime = currentTime.AddDate(0, 0, -7).Format("2006-01-02 15:04:05") // 前七天时间
-			//oldTime 的结果为go的时间time类型，2018-09-25 13:24:58.287714118 +0000 UTC
-			break
-		case "15":
-			oldTime = currentTime.AddDate(0, 0, -15).Format("2006-01-02 15:04:05") // 前15天时间
-			//oldTime 的结果为go的时间time类型，2018-09-25 13:24:58.287714118 +0000 UTC
-			break
-		case "30":
-			oldTime = currentTime.AddDate(0, 0, -30).Format("2006-01-02 15:04:05") // 前30天时间
-			break
+	// 时间段搜索
+	if len(params.StartTime) > 0 && len(params.EndTime) > 0 {
+		//格式化字符串为时间
+		StartTime, StartTimeErr := time.Parse("2006-01-02", params.StartTime)
+		EndTime, EndTimeErr := time.Parse("2006-01-02", params.EndTime)
+		if StartTimeErr != nil || EndTimeErr != nil {
+			echo.Error(c, "SearchTimeErr", "")
+			return
 		}
-		if len(oldTime) > 0 {
-			DB.Where("created_at > ?", oldTime)
-		}
+		DB = DB.Where("created_at >= ?", StartTime).Where("created_at <= ?", EndTime)
 	}
-	DB.Where(where).Order("id desc").Find(&list)
-	echo.Success(c, list, "ok", "")
+	table := DB.Where(where)
+	table.Count(&pageList.Total)
+	// 设置分页参数
+	pageList.CurrentPage = int64(params.Page)
+	pageList.PageSize = int64(params.Limit)
+	models.InitPageList(&pageList)
+	// order by
+	table = table.Order("id desc").Offset(int(pageList.Offset)).Limit(int(pageList.PageSize))
+	if err := table.Scan(&result).Error; err != nil {
+		// 记录错误
+		logger.Error(err)
+	} else {
+		pageList.Data = result
+	}
+	echo.Success(c, pageList, "ok", "")
 }
