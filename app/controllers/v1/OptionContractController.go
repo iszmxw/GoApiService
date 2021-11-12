@@ -98,6 +98,7 @@ func (h *OptionContractController) TradeHandler(c *gin.Context) {
 		Currency       response.Currency                  // 查询交易币种信息
 		UsersWallet    response.UsersWallet               // 查询钱包信息
 		UserInfo       response.User                      // 查询用户信息
+		UserStatus     response.User                      // 查询用户状态
 		addData        models.OptionContractTransaction   // 添加期权合约交易信息
 		arr            agent_dividend.Params              // 代理分润数据
 	)
@@ -135,6 +136,11 @@ func (h *OptionContractController) TradeHandler(c *gin.Context) {
 	addData.BuyPrice = request.BuyPrice                 // 购买价格
 	// 开启数据库
 	DB := mysql.DB.Debug().Begin()
+	if UserStatus.Status == "1" {
+		DB.Rollback()
+		echo.Error(c, "UserIsLock", "")
+		return
+	}
 	// 查询交易的合约信息
 	DB.Model(models.OptionContract{}).Where("id", request.OptionContractId).Find(&OptionContract)
 	if OptionContract.Id <= 0 {

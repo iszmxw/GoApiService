@@ -87,6 +87,7 @@ func (h *PerpetualContractController) TradeHandler(c *gin.Context) {
 		PerpetualContract response.PerpetualContract            // 查询永续合约信息
 		Currency          response.Currency                     // 查询交易币种信息
 		UsersWallet       response.UsersWallet                  // 查询钱包信息
+		UserStatus        response.User                         // 查询用户状态
 		addData           models.PerpetualContractTransaction   // 添加永续合约交易数据
 		Bail              string                                // 保证金占用比例Bail
 		EnsureAmount      float64                               // 保证金
@@ -178,6 +179,11 @@ func (h *PerpetualContractController) TradeHandler(c *gin.Context) {
 
 	// 开启数据库
 	DB := mysql.DB.Debug().Begin()
+	if UserStatus.Status == "1" {
+		DB.Rollback()
+		echo.Error(c, "UserIsLock", "")
+		return
+	}
 	DB.Model(models.Currency{}).
 		Where(models.Prefix("$_currency.id"), params.CurrencyId).
 		Select(models.Prefix("$_currency.*,$_trading_pair.name as trading_pair_name")).

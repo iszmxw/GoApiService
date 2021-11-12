@@ -62,6 +62,7 @@ func (h *CurrencyCurrencyController) TransactionHandler(c *gin.Context) {
 		UsersWallet2            response.UsersWallet         // 币币交易钱包2
 		WalletStreamUsersWallet response.UsersWallet         // 钱包流水
 		addData                 models.CurrencyTransaction   // 添加币币交易数据
+		UserStatus              response.User                // 查询用户状态
 	)
 	_ = c.Bind(&params)
 	// 数据验证
@@ -100,6 +101,12 @@ func (h *CurrencyCurrencyController) TransactionHandler(c *gin.Context) {
 	}
 	// 开启数据库
 	DB := mysql.DB.Debug().Begin()
+	DB.Model(models.User{}).Where("id", userId).Find(&UserStatus)
+	if UserStatus.Status == "1" {
+		DB.Rollback()
+		echo.Error(c, "UserIsLock", "")
+		return
+	}
 	DB.Model(models.Currency{}).
 		Where(map[string]interface{}{models.Prefix("$_currency.id"): params.CurrencyId}).
 		Select(models.Prefix(models.Prefix("$_currency.*,$_trading_pair.name as trading_pair_name"))).
@@ -115,7 +122,7 @@ func (h *CurrencyCurrencyController) TransactionHandler(c *gin.Context) {
 		echo.Error(c, "CurrencyTransactionIsExist", "")
 		return
 	}
-	arrayType := strings.Split(Currency.Type,",")
+	arrayType := strings.Split(Currency.Type, ",")
 	logger.Info(arrayType)
 	// 该函数会打乱数组原有的顺序
 	if !helpers.InArray("1", arrayType) {

@@ -54,10 +54,6 @@ func (h *LoginController) LoginHandler(c *gin.Context) {
 		echo.Error(c, "UserIsNotExist", "")
 		return
 	}
-	if user.Status == "1" {
-		echo.Error(c, "UserIsLock", "")
-		return
-	}
 	endMd5 := helpers.Md5(params.Password)
 	if endMd5 != user.Password {
 		echo.Error(c, "PwError", "")

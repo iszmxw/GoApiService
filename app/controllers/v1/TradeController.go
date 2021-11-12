@@ -280,6 +280,7 @@ func (h *TradeController) WithdrawHandler(c *gin.Context) {
 		AddData       models.Withdraw
 		TradingPair   response.TradingPair
 		WalletAddress response.WalletAddress
+		UserStatus    response.User // 查询用户状态
 	)
 	_ = c.Bind(&params)
 	// 数据验证
@@ -292,6 +293,11 @@ func (h *TradeController) WithdrawHandler(c *gin.Context) {
 	userId, _ := c.Get("user_id")
 	userInfo, _ := c.Get("user")
 	DB := mysql.DB.Debug().Begin()
+	if UserStatus.Status == "1" {
+		DB.Rollback()
+		echo.Error(c, "UserIsLock", "")
+		return
+	}
 	DB.Model(models.TradingPair{}).Where("id", "1").Find(&TradingPair)
 	if TradingPair.Id <= 0 {
 		echo.Error(c, "TradingPairIsNotExist", "")
