@@ -420,48 +420,6 @@ func (h *LoginController) ResetPasswordHandler(c *gin.Context) {
 	echo.Success(c, "ok", "", "")
 }
 
-// EditPasswordHandler 重置密码
-func (h *LoginController) EditPasswordHandler(c *gin.Context) {
-	// 初始化数据模型结构体
-	var (
-		params requests.EditPassword
-	)
-	// 绑定接收的 json 数据到结构体中
-	_ = c.Bind(&params)
-	//// 数据验证
-	vErr := validator.Validate.Struct(params)
-	if vErr != nil {
-		msg := validator.Lang(c.Request.Header.Get("Language")).Translate(vErr, params, c.Request.Header.Get("Language"))
-		echo.Error(c, "", msg)
-		return
-	}
-
-	userInfo, _ := c.Get("user")
-	Email := userInfo.(map[string]interface{})["email"].(string)
-	// 检查用户是否注册
-	UserIsExist := new(response.User)
-	mysql.DB.Debug().Model(models.User{}).Where("email", Email).Find(&UserIsExist)
-	if UserIsExist.Id <= 0 {
-		echo.Error(c, "UserIsExist", "")
-		return
-	}
-	// 开始事务
-	DB := mysql.DB.Debug().Begin()
-	user := new(response.User)
-	// 修改密码
-	user.Password = helpers.Md5(params.Password)
-	err := DB.Model(&models.User{}).Where("email", Email).Updates(&user).Error
-	if err != nil {
-		// 遇到错误时回滚事务
-		DB.Rollback()
-		echo.Error(c, "ResetPassword", "")
-		return
-	}
-	// 否则，提交事务
-	DB.Commit()
-	echo.Success(c, "ok", "", "")
-}
-
 // LogoutHandler 退出
 func (h *LoginController) LogoutHandler(c *gin.Context) {
 	tokenString := request.GetParam(c, "token")

@@ -26,8 +26,6 @@ func RegisterWebRoutes(router *gin.RouterGroup) {
 		ApiRoute.Any("/user/reset_verify", v1Group.LoginController.ResetVerifyHandler)
 		// 重置密码
 		ApiRoute.Any("/user/reset_password", v1Group.LoginController.ResetPasswordHandler)
-		// 修改登录密码
-		ApiRoute.Any("/user/edit_password", v1Group.LoginController.ResetPasswordHandler)
 		// 退出系统
 		ApiRoute.Any("/user/logout", v1Group.LoginController.LogoutHandler)
 		// 获取用户信息
@@ -36,7 +34,7 @@ func RegisterWebRoutes(router *gin.RouterGroup) {
 		ApiRoute.Any("/user/lang_setup", v1Group.UserController.LangSetupHandler)
 		// 设置支付密码
 		ApiRoute.Any("/user/payPassword_setup", v1Group.UserController.PayPasswordSetupHandler)
-		// 设置支付密码
+		// 修改密码
 		ApiRoute.Any("/user/edit_password", v1Group.UserController.EditPasswordHandler)
 		// 我的邀请码
 		ApiRoute.Any("/user/share_code", v1Group.UserController.ShareCodeHandler)

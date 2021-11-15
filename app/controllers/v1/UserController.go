@@ -9,7 +9,6 @@ import (
 	"goapi/pkg/echo"
 	"goapi/pkg/helpers"
 	"goapi/pkg/mysql"
-	"goapi/pkg/redis"
 	"goapi/pkg/share_code"
 	"goapi/pkg/validator"
 )
@@ -118,25 +117,12 @@ func (h *UserController) EditPasswordHandler(c *gin.Context) {
 		echo.Error(c, "ValidatorError", msg)
 		return
 	}
-	// 检测验邮箱证码
-	Code, codeErr := redis.Get("RegisterCode:" + params.Email)
-	if codeErr != nil {
-		echo.Error(c, "VerCodeErr", "")
-		return
-	}
-	if Code != params.Code {
-		echo.Error(c, "VerCodeErr", "")
-		return
-	}
 	userInfo, _ := c.Get("user")
-	if params.Email != userInfo.(map[string]interface{})["email"].(string) {
-		echo.Error(c, "VerCodeErr", "")
-		return
-	}
+	Email := userInfo.(map[string]interface{})["email"]
 	// 开始事务
 	DB := mysql.DB.Debug().Begin()
 	user.Password = helpers.Md5(params.Password)
-	err := DB.Model(&models.User{}).Where(map[string]interface{}{"email": params.Email}).Updates(user).Error
+	err := DB.Model(&models.User{}).Where("email", Email).Updates(user).Error
 	if err != nil {
 		fmt.Println(err.Error())
 		// 遇到错误时回滚事务
