@@ -5,6 +5,8 @@ import (
 	"goapi/language/es"
 	"goapi/language/ja"
 	"goapi/language/ko"
+	"goapi/language/ti"
+	"goapi/language/ve"
 	"goapi/language/zh"
 	"reflect"
 )
@@ -30,6 +32,10 @@ func (l *Type) GetValidatorCode(name string) string {
 		ValidatorCode = &ja.ValidatorCode{}
 	case "ko":
 		ValidatorCode = &ko.ValidatorCode{}
+	case "ti":
+		ValidatorCode = &ti.ValidatorCode{}
+	case "ve":
+		ValidatorCode = &ve.ValidatorCode{}
 	case "zh":
 		ValidatorCode = &zh.ValidatorCode{}
 	default:
@@ -54,6 +60,10 @@ func (l *Type) GetErrorCode(name string) (string, string) {
 		ErrorCode = &ja.ErrorCode{}
 	case "ko":
 		ErrorCode = &ko.ErrorCode{}
+	case "ti":
+		ErrorCode = &ti.ErrorCode{}
+	case "ve":
+		ErrorCode = &ve.ErrorCode{}
 	case "zh":
 		ErrorCode = &zh.ErrorCode{}
 	default:
