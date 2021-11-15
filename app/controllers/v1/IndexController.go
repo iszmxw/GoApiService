@@ -70,6 +70,9 @@ func (h *IndexController) SysCurrencyHandler(c *gin.Context) {
 	// 搜索条件
 	if len(params.Type) > 0 {
 		Query = Query.Where("FIND_IN_SET(?,type)", params.Type)
+		if params.Type == "4" { // 只查询合约的
+			Query = Query.Where("FIND_IN_SET(?,type)", "2").Or("FIND_IN_SET(?,type)", "3")
+		}
 	}
 	Query.Find(&currencyList)
 	echo.Success(c, currencyList, "", "")
