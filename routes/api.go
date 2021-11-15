@@ -34,8 +34,10 @@ func RegisterWebRoutes(router *gin.RouterGroup) {
 		ApiRoute.Any("/user/lang_setup", v1Group.UserController.LangSetupHandler)
 		// 设置支付密码
 		ApiRoute.Any("/user/payPassword_setup", v1Group.UserController.PayPasswordSetupHandler)
-		// 设置支付密码
+		// 忘记密码修改密码
 		ApiRoute.Any("/user/edit_password", v1Group.UserController.EditPasswordHandler)
+		// 登录用户修改密码
+		ApiRoute.Any("/user/edit_pw", v1Group.UserController.EditPwHandler)
 		// 我的邀请码
 		ApiRoute.Any("/user/share_code", v1Group.UserController.ShareCodeHandler)
 

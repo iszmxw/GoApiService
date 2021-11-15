@@ -103,7 +103,7 @@ func (h *UserController) PayPasswordSetupHandler(c *gin.Context) {
 	echo.Success(c, "ok", "", "")
 }
 
-// EditPasswordHandler 修改密码
+// EditPasswordHandler 忘记密码修改密码
 func (h *UserController) EditPasswordHandler(c *gin.Context) {
 	var (
 		params requests.Password // 接收请求参数
@@ -137,6 +137,38 @@ func (h *UserController) EditPasswordHandler(c *gin.Context) {
 	DB := mysql.DB.Debug().Begin()
 	user.Password = helpers.Md5(params.Password)
 	err := DB.Model(&models.User{}).Where(map[string]interface{}{"email": params.Email}).Updates(user).Error
+	if err != nil {
+		fmt.Println(err.Error())
+		// 遇到错误时回滚事务
+		DB.Rollback()
+		echo.Error(c, "PasswordEditError", "")
+		return
+	}
+	DB.Commit()
+	echo.Success(c, "ok", "", "")
+}
+
+// EditPwHandler 登录用户修改密码
+func (h *UserController) EditPwHandler(c *gin.Context) {
+	var (
+		params requests.Pw // 接收请求参数
+		user   models.User //  用户模型
+	)
+	// 绑定接收的 json 数据到结构体中
+	_ = c.Bind(&params)
+	//// 数据验证
+	vErr := validator.Validate.Struct(params)
+	if vErr != nil {
+		msg := validator.Lang(c.Request.Header.Get("Language")).Translate(vErr, params, c.Request.Header.Get("Language"))
+		echo.Error(c, "ValidatorError", msg)
+		return
+	}
+	userInfo, _ := c.Get("user")
+	Email := userInfo.(map[string]interface{})["email"].(string)
+	// 开始事务
+	DB := mysql.DB.Debug().Begin()
+	user.Password = helpers.Md5(params.Password)
+	err := DB.Model(&models.User{}).Where("email", Email).Updates(user).Error
 	if err != nil {
 		fmt.Println(err.Error())
 		// 遇到错误时回滚事务
