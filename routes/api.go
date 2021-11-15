@@ -26,6 +26,8 @@ func RegisterWebRoutes(router *gin.RouterGroup) {
 		ApiRoute.Any("/user/reset_verify", v1Group.LoginController.ResetVerifyHandler)
 		// 重置密码
 		ApiRoute.Any("/user/reset_password", v1Group.LoginController.ResetPasswordHandler)
+		// 修改登录密码
+		ApiRoute.Any("/user/edit_password", v1Group.LoginController.ResetPasswordHandler)
 		// 退出系统
 		ApiRoute.Any("/user/logout", v1Group.LoginController.LogoutHandler)
 		// 获取用户信息

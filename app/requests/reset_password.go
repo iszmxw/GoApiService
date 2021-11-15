@@ -13,3 +13,9 @@ type ResetPassword struct {
 	Password   string `json:"password" form:"password" validate:"min=6"`                        // 密码
 	RePassword string `json:"re_password" form:"re_password" validate:"min=6,eqfield=Password"` // 确认密码
 }
+
+// EditPassword 修改密码
+type EditPassword struct {
+	Password   string `json:"password" form:"password" validate:"min=6"`                        // 密码
+	RePassword string `json:"re_password" form:"re_password" validate:"min=6,eqfield=Password"` // 确认密码
+}
