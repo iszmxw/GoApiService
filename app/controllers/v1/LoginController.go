@@ -71,8 +71,8 @@ func (h *LoginController) LoginHandler(c *gin.Context) {
 	if len(oldToken) > 0 {
 		redis.Delete(oldToken)
 	}
-	_, err := redis.Add(token, string(info), 60*60*2) // 缓存两个小时过期
-	_, err1 := redis.Add(loginKey, token, 60*60*2)    // 缓存两个小时过期
+	_, err := redis.Add(token, string(info), 0) // 持久化缓存
+	_, err1 := redis.Add(loginKey, token, 0)    // 持久化缓存
 	if err != nil || err1 != nil {
 		logger.Info("服务异常，登录失败！")
 		logger.Error(err)

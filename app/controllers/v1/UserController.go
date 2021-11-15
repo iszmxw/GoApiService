@@ -83,16 +83,6 @@ func (h *UserController) PayPasswordSetupHandler(c *gin.Context) {
 		echo.Error(c, "ValidatorError", msg)
 		return
 	}
-	// 检测验邮箱证码
-	Code, codeErr := redis.Get("RegisterCode:" + params.Email)
-	if codeErr != nil {
-		echo.Error(c, "VerCodeErr", "")
-		return
-	}
-	if Code != params.Code {
-		echo.Error(c, "VerCodeErr", "")
-		return
-	}
 	userInfo, _ := c.Get("user")
 	if params.Email != userInfo.(map[string]interface{})["email"].(string) {
 		echo.Error(c, "VerCodeErr", "")
