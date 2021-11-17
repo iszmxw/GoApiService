@@ -89,16 +89,6 @@ func (h *CurrencyCurrencyController) TransactionHandler(c *gin.Context) {
 		echo.Error(c, "ValidatorError", LimitPriceErr.Error())
 		return
 	}
-	if OrderPriceErr != nil {
-		logger.Error(errors.New("传输的OrderPrice转义失败"))
-		echo.Error(c, "ValidatorError", OrderPriceErr.Error())
-		return
-	}
-	if EntrustNumErr != nil {
-		logger.Error(errors.New("传输的EntrustNum转义失败"))
-		echo.Error(c, "ValidatorError", EntrustNumErr.Error())
-		return
-	}
 	// 开启数据库
 	DB := mysql.DB.Debug().Begin()
 	DB.Model(models.User{}).Where("id", userId).Find(&UserStatus)
@@ -174,6 +164,11 @@ func (h *CurrencyCurrencyController) TransactionHandler(c *gin.Context) {
 	UpdateUsersWallet := cmap.New().Items()
 	// 订单方向：1-买入
 	if params.TransactionType == "1" {
+		if OrderPriceErr != nil {
+			logger.Error(errors.New("传输的OrderPrice转义失败"))
+			echo.Error(c, "ValidatorError", OrderPriceErr.Error())
+			return
+		}
 		// 消费的金额不能大于钱包余额
 		if OrderPrice > UsersWallet.Available {
 			echo.Error(c, "InsufficientBalance", "")
@@ -213,6 +208,11 @@ func (h *CurrencyCurrencyController) TransactionHandler(c *gin.Context) {
 
 	// 订单方向：2-卖出
 	if params.TransactionType == "2" {
+		if EntrustNumErr != nil {
+			logger.Error(errors.New("传输的EntrustNum转义失败"))
+			echo.Error(c, "ValidatorError", EntrustNumErr.Error())
+			return
+		}
 		if params.OrderType == "2" { // 挂单类型：1-限价 2-市价
 			// 从K线图获取市价
 			kline, klineErr := huobi.Kline(Currency.KLineCode, "high") // 买入的时候取 low
