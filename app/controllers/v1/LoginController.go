@@ -405,10 +405,9 @@ func (h *LoginController) ResetPasswordHandler(c *gin.Context) {
 	}
 	// 开始事务
 	DB := mysql.DB.Debug().Begin()
-	user := new(response.User)
 	// 修改密码
-	user.Password = helpers.Md5(params.Password)
-	err := DB.Model(&models.User{}).Where(map[string]interface{}{"email": params.Email}).Updates(&user).Error
+	Password := helpers.Md5(params.Password)
+	err := DB.Model(&models.User{}).Where(map[string]interface{}{"email": params.Email}).Update("password", Password).Error
 	if err != nil {
 		// 遇到错误时回滚事务
 		DB.Rollback()
