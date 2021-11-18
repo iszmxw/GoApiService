@@ -28,3 +28,9 @@ type WalletAddressAdd struct {
 type WalletAddressDel struct {
 	Id string `json:"id" form:"id" validate:"required"` // id
 }
+
+//  AssetsStream 查询个人资产
+
+type AssetsStream struct {
+	Type string `json:"type" form:"type" validate:"omitempty,numeric"` // 1现货 2合约
+}

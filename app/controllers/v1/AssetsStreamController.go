@@ -21,10 +21,31 @@ type AssetsStreamController struct {
 
 // AssetsStreamHandler 个人资产
 func (h *AssetsStreamController) AssetsStreamHandler(c *gin.Context) {
+	// 初始化数据模型结构体
+	var (
+		params requests.AssetsStream
+		result []response.UsersWallet
+	)
+	_ = c.Bind(&params)
 	userId, _ := c.Get("user_id")
-	var result []response.UsersWallet
+	// 数据验证
+	vErr := validator.Validate.Struct(params)
+	if vErr != nil {
+		msg := validator.Lang(c.Request.Header.Get("Language")).Translate(vErr, params, c.Request.Header.Get("Language"))
+		echo.Error(c, "ValidatorError", msg)
+		return
+	}
+	where := cmap.New().Items()
+	where[models.Prefix("$_users_wallet.user_id")] = userId
+	if len(params.Type) > 0 {
+		where[models.Prefix("$_users_wallet.type")] = params.Type
+	}
 	DB := mysql.DB.Debug()
-	DB.Model(models.UsersWallet{}).Where("user_id", userId).Order("id DESC").Find(&result)
+	DB.Model(models.UsersWallet{}).
+		Where(where).
+		Joins(models.Prefix("left join $_trading_pair on $_users_wallet.trading_pair_id = $_trading_pair.id")).
+		Order(models.Prefix("$_trading_pair.id asc")).
+		Find(&result)
 	echo.Success(c, result, "", "")
 }
 
