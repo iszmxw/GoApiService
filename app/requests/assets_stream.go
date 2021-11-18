@@ -2,8 +2,9 @@ package requests
 
 // TradingPair 交易对id
 type TradingPair struct {
-	Type          string `json:"type" form:"type" validate:"required,numeric"`                       // 1现货 2合约
-	TradingPairId string `json:"trading_pair_id" form:"trading_pair_id" validate:"required,numeric"` //提现的交易对id
+	Type            string `json:"type" form:"type" validate:"required,numeric"`                        // 1现货 2合约
+	TradingPairId   string `json:"trading_pair_id" form:"trading_pair_id" validate:"omitempty,numeric"` //提现的交易对id
+	TradingPairName string `json:"trading_pair_name" form:"trading_pair_name"`                          //提现的交易对name
 }
 
 // ListAssetsStream 查询资产流水

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	cmap "github.com/orcaman/concurrent-map"
 	"goapi/app/models"
 	"goapi/app/requests"
 	"goapi/app/response"
@@ -43,12 +44,18 @@ func (h *AssetsStreamController) AssetsTypeHandler(c *gin.Context) {
 		return
 	}
 	userId, _ := c.Get("user_id")
+	where := cmap.New().Items()
+	where["user_id"] = userId   // 用户id
+	where["type"] = params.Type // 钱包类型：1现货 2合约
+	if len(params.TradingPairId) > 0 {
+		where["trading_pair_id"] = params.TradingPairId // 交易对id
+	}
+	if len(params.TradingPairName) > 0 {
+		where["trading_pair_name"] = params.TradingPairName // 交易对名称
+	}
+	where["type"] = params.Type
 	DB := mysql.DB.Debug()
-	DB.Model(models.UsersWallet{}).
-		Where("type", params.Type).                     // 钱包类型：1现货 2合约
-		Where("user_id", userId).                       // 用户id
-		Where("trading_pair_id", params.TradingPairId). // 钱包对id
-		Find(&result)
+	DB.Model(models.UsersWallet{}).Where(where).Find(&result)
 	if result.Id <= 0 {
 		echo.Error(c, "CurrencyIsExist", "")
 		return
