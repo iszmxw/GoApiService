@@ -161,7 +161,7 @@ func (h *PerpetualContractController) TradeHandler(c *gin.Context) {
 	addData.LimitPrice = params.LimitPrice     // 当前限价
 	// 保证金
 	EnsureAmount = EntrustNum * LimitPrice * Bails
-	logger.Info(fmt.Sprintf("最终保证金：%v", EnsureAmount))
+	logger.Info(fmt.Sprintf("最终保证金：%v", fmt.Sprintf("%.8f", EnsureAmount)))
 	addData.EnsureAmount = fmt.Sprintf("%.8f", EnsureAmount) // 保证金
 	addData.Multiple = params.Multiple                       // 倍数值
 	addData.OrderType = params.OrderType                     // 订单类型：1-限价 2-市价
@@ -230,7 +230,7 @@ func (h *PerpetualContractController) TradeHandler(c *gin.Context) {
 		return
 	}
 	if UsersWallet.Available <= 0 || UsersWallet.Id <= 0 || UsersWallet.Available < Price {
-		logger.Info(fmt.Sprintf("UsersWallet.Available: %v <= 0 || UsersWallet.Id: %v <= 0", UsersWallet.Available, UsersWallet.Id))
+		logger.Info(fmt.Sprintf("UsersWallet.Available: %v <= 0 || UsersWallet.Id: %v <= 0 || UsersWallet.Available:%v < Price:%v", UsersWallet.Available, UsersWallet.Id, UsersWallet.Available, Price))
 		DB.Rollback()
 		echo.Error(c, "InsufficientBalance", "")
 		return

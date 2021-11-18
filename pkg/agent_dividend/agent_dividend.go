@@ -9,6 +9,7 @@ import (
 	"goapi/pkg/logger"
 	"goapi/pkg/mysql"
 	"gorm.io/gorm"
+	"strconv"
 )
 
 // 用户信息表
@@ -24,7 +25,7 @@ type ParentAgent struct {
 	PayPassword   string             `json:"pay_password"`   //支付密码
 	UserLevel     int                `json:"user_level"`     //用户层级
 	UserPath      string             `json:"user_path"`      //用户关系
-	AgentDividend float64            `json:"agent_dividend"` //代理红利
+	AgentDividend string             `json:"agent_dividend"` //代理红利
 	ShareCode     string             `json:"share_code"`     //用户邀请码，每个用户唯一
 	RiskProfit    int                `json:"risk_profit"`    //风控 0-无 1-盈 2-亏
 	LastLoginIp   string             `json:"last_login_ip"`  //登录IP
@@ -60,7 +61,19 @@ func ParentAgentDividend(params Params) {
 		Where("status", "0").       // 挑选是正常的
 		Find(&Parent)
 	logger.Info(Parent)
-	if Parent.AgentDividend <= 0 {
+
+	var AgentDividend float64
+	var err error
+	if len(Parent.AgentDividend) > 0 {
+		AgentDividend, err = strconv.ParseFloat(Parent.AgentDividend, 64) // 代理分红
+		if err != nil {
+			logger.Error(err)
+			return
+		}
+	} else {
+		AgentDividend = 0
+	}
+	if AgentDividend <= 0 {
 		DB.Rollback()
 		// 上级代理不存在或者上级红利未设置，不做处理，直接跳过
 		logger.Error(errors.New("上级代理红利未设置，不做处理，直接跳过"))
@@ -69,9 +82,9 @@ func ParentAgentDividend(params Params) {
 	// 代理所得分红金额
 	var Amount float64
 	if params.Current == 10 {
-		Amount = params.TransactionAmount * Parent.AgentDividend * 0.01
+		Amount = params.TransactionAmount * AgentDividend * 0.01
 	} else {
-		Amount = params.TransactionAmount * (params.ParentDividend - Parent.AgentDividend) * 0.01
+		Amount = params.TransactionAmount * (params.ParentDividend - AgentDividend) * 0.01
 	}
 	if Amount <= 0 {
 		// 层层瓜分，最终没有钱分了
@@ -129,7 +142,7 @@ func ParentAgentDividend(params Params) {
 		data.TradingPairId = params.TradingPairId                   // 交易对id
 		data.TradingPairName = params.TradingPairName               // 交易对名称
 		data.TransactionAmount = params.TransactionAmount           // 交易金额
-		data.ParentDividend = Parent.AgentDividend                  // 上级获得的分润比例
+		data.ParentDividend = AgentDividend                         // 上级获得的分润比例
 		data.WalletStreamType = params.WalletStreamType             // 流转类型 0 未知 1 充值 2 提现 3 划转 4 快捷买币 5 空投 6 现货 7 合约 8 期权 9 手续费
 		data.WalletStreamTypeDetail = params.WalletStreamTypeDetail // 流转详细类型 0 未知 1 USDT充值 2银行卡充值 3现货划转合约 4合约划转现货 5提现 6空投支出 7空投收入 8现货支出 9现货收入 10合约支出 11合约收入 12期权支出 13期权收入
 		data.Current = params.Current                               // 层级
