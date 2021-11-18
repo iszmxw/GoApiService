@@ -49,4 +49,5 @@ type ErrorCode struct {
 	CurrencyTypeIsNotAllowed            string `code:"10043" msg:"ธุรกรรมประเภทนี้ไม่ได้รับอนุญาตชั่วคราวสำหรับคู่ธุรกรรมนี้ โปรดติดต่อการดำเนินการในกรณีที่จำเป็น"`
 	UserIsLock                          string `code:"10044" msg:"สถานะผู้ใช้ถูกล็อค"`
 	SearchTimeErr                       string `code:"10045" msg:"รูปแบบเวลาค้นหาไม่ถูกต้อง eg: 2006-01-02"`
+	OptionContractMinimum               string `code:"10046" msg:"ปริมาณธุรกรรมปัจจุบันต่ำกว่าปริมาณการใช้มากที่สุด"`
 }

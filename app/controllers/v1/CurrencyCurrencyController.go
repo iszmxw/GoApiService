@@ -49,7 +49,7 @@ func (h *CurrencyCurrencyController) HistoryHandler(c *gin.Context) {
 		where[models.Prefix("$_currency_transaction.status")] = request.Status
 	}
 	// 绑定接收的 json 数据到结构体中
-	DB.GetPaginate(where, request.OrderBy, int64(request.Page), int64(request.Limit), &lists)
+	DB.GetPaginate(where, "updated_at desc", int64(request.Page), int64(request.Limit), &lists)
 	echo.Success(c, lists, "", "")
 }
 
@@ -191,7 +191,7 @@ func (h *CurrencyCurrencyController) TransactionHandler(c *gin.Context) {
 		addData.OrderPrice = OrderPrice // 订单额
 		// 委托量 = 订单金额/市价
 		EntrustNum = OrderPrice / LimitPrice
-		addData.EntrustNum = fmt.Sprintf("%v", EntrustNum)
+		addData.EntrustNum = fmt.Sprintf("%.8f", EntrustNum) // 保留八位小数
 		// 挂单类型：1-限价 2-市价 类型计算
 		// 可用余额减去消费货币
 		UpdateUsersWallet["available"] = UsersWallet.Available - OrderPrice

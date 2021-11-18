@@ -49,4 +49,5 @@ type ErrorCode struct {
 	CurrencyTypeIsNotAllowed            string `code:"10043" msg:"該交易對暫不允許該類型交易，如有需要請聯繫運營"`
 	UserIsLock                          string `code:"10044" msg:"用戶狀態已鎖定"`
 	SearchTimeErr                       string `code:"10045" msg:"搜索時間格式不正確 eg: 2006-01-02"`
+	OptionContractMinimum               string `code:"10046" msg:"當前交易額，低於最消費"`
 }

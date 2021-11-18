@@ -124,6 +124,7 @@ func UpdateResult(id string) {
 
 			// 查询用户当前钱包余额
 			where := cmap.New().Items()
+			where["type"] = "2" // 查询合约钱包
 			where["user_id"] = result.UserId
 			where["trading_pair_id"] = result.TradingPairId
 			var UsersWallet response.UsersWallet
@@ -197,6 +198,7 @@ func UpdateResult(id string) {
 
 			// 查询用户当前钱包余额
 			where := cmap.New().Items()
+			where["type"] = "2" // 查询合约钱包
 			where["user_id"] = result.UserId
 			where["trading_pair_id"] = result.TradingPairId
 			var UsersWallet response.UsersWallet

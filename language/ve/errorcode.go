@@ -49,4 +49,5 @@ type ErrorCode struct {
 	CurrencyTypeIsNotAllowed            string `code:"10043" msg:"Loại giao dịch này tạm thời không được phép cho cặp giao dịch này, vui lòng liên hệ với bộ phận vận hành nếu cần thiết"`
 	UserIsLock                          string `code:"10044" msg:"Trạng thái người dùng bị khóa"`
 	SearchTimeErr                       string `code:"10045" msg:"Định dạng thời gian tìm kiếm không chính xác eg: 2006-01-02"`
+	OptionContractMinimum               string `code:"10046" msg:"Lượng giao dịch hiện tại thấp hơn lượng tiêu thụ nhiều nhất"`
 }

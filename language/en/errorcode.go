@@ -49,4 +49,5 @@ type ErrorCode struct {
 	CurrencyTypeIsNotAllowed            string `code:"10043" msg:"This type of transaction is temporarily not allowed for this transaction pair, please contact the operation if necessary"`
 	UserIsLock                          string `code:"10044" msg:"User status is locked"`
 	SearchTimeErr                       string `code:"10045" msg:"Incorrect search time eg: 2006-01-02"`
+	OptionContractMinimum               string `code:"10046" msg:"The current transaction volume is lower than the most consumed"`
 }

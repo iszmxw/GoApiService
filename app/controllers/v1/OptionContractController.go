@@ -162,7 +162,7 @@ func (h *OptionContractController) TradeHandler(c *gin.Context) {
 		echo.Error(c, "OptionContractStatus", "")
 		return
 	}
-	// 查询交易的合约信息
+	// 查询交易的币种信息
 	DB.Model(models.Currency{}).
 		Where(models.Prefix("$_currency.id"), request.CurrencyId).
 		Select(models.Prefix("$_currency.*,$_trading_pair.name as trading_pair_name")).
@@ -189,6 +189,12 @@ func (h *OptionContractController) TradeHandler(c *gin.Context) {
 	if Currency.FeeOptionContract < 0 {
 		logger.Error(errors.New(fmt.Sprintf("期权合约交易手续费小于零: %v", Currency.FeeOptionContract)))
 		echo.Error(c, "FeeOptionContractIsError", "")
+		return
+	}
+	// 期权最低交易额拦截
+	if Price < OptionContract.Minimum {
+		logger.Error(errors.New(fmt.Sprintf("期权最低交易额拦截，当前交易额为：%v，最低交易额为：%v", Price, OptionContract.Minimum)))
+		echo.Error(c, "OptionContractMinimum", "")
 		return
 	}
 	addData.CurrencyName = Currency.Name + "/" + Currency.TradingPairName // 币种名称 例如：BTC/USDT（币种/交易对）

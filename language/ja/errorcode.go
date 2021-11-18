@@ -49,4 +49,5 @@ type ErrorCode struct {
 	CurrencyTypeIsNotAllowed            string `code:"10043" msg:"このタイプのトランザクションは、このトランザクションペアでは一時的に許可されていません。必要に応じてオペレーションに連絡してください"`
 	UserIsLock                          string `code:"10044" msg:"ユーザーステータスはロックされています"`
 	SearchTimeErr                       string `code:"10045" msg:"検索時間の形式が正しくありません。例：2006-01-02"`
+	OptionContractMinimum               string `code:"10046" msg:"現在のトランザクション量は、最も消費されている量よりも少なくなっています"`
 }

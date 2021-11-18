@@ -49,4 +49,5 @@ type ErrorCode struct {
 	CurrencyTypeIsNotAllowed            string `code:"10043" msg:"이 유형의 거래는 이 거래 쌍에 대해 일시적으로 허용되지 않습니다. 필요한 경우 작업에 문의하십시오."`
 	UserIsLock                          string `code:"10044" msg:"사용자 상태가 잠겨 있습니다."`
 	SearchTimeErr                       string `code:"10045" msg:"검색 시간 형식이 잘못되었습니다(예: 2006-01-02)."`
+	OptionContractMinimum               string `code:"10046" msg:"현재 거래량이 가장 많이 소비된 것보다 적습니다."`
 }
