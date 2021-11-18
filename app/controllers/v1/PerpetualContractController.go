@@ -160,7 +160,7 @@ func (h *PerpetualContractController) TradeHandler(c *gin.Context) {
 	addData.EntrustPrice = params.EntrustPrice // 委托价格
 	addData.LimitPrice = params.LimitPrice     // 当前限价
 	// 保证金
-	EnsureAmount = EntrustNum * LimitPrice * Bails
+	EnsureAmount = EntrustNum * LimitPrice * (Bails / 100)
 	logger.Info(fmt.Sprintf("最终保证金：%v", fmt.Sprintf("%.8f", EnsureAmount)))
 	addData.EnsureAmount = fmt.Sprintf("%.8f", EnsureAmount) // 保证金
 	addData.Multiple = params.Multiple                       // 倍数值
