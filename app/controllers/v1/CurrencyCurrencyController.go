@@ -153,7 +153,7 @@ func (h *CurrencyCurrencyController) TransactionHandler(c *gin.Context) {
 	where2["trading_pair_name"] = Currency.Name
 	DB.Model(models.UsersWallet{}).Where(where2).Find(&UsersWallet2)
 	// 交易对钱包信息不存在，或者可用余额不足
-	if UsersWallet2.Available <= 0 || UsersWallet2.Id <= 0 {
+	if UsersWallet2.Id <= 0 {
 		log := fmt.Sprintf("UsersWallet2.Available（%v） <= 0 || UsersWallet2.Id（%v） <= 0", UsersWallet2.Available, UsersWallet2.Id)
 		logger.Info(UsersWallet2)
 		logger.Error(errors.New(log))
