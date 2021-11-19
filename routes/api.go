@@ -140,5 +140,12 @@ func RegisterWebRoutes(router *gin.RouterGroup) {
 			currencyCurrency.Any("/cancel_order", v1Group.CurrencyCurrencyController.CancelOrderHandler)
 		}
 
+		// k线图服务
+		kLine := ApiRoute.Group("/kline")
+		{
+			// 1分钟 5分钟数据
+			kLine.Any("/ws", v1Group.KlineController.WsHandler)
+		}
+
 	}
 }
