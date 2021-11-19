@@ -283,6 +283,7 @@ func (h *TradeController) WithdrawHandler(c *gin.Context) {
 		UsersWallet    response.UsersWallet    // 查询现货钱包
 		WithdrawalFees response.WithdrawalFees // 查询提现费率
 		AddData        models.Withdraw         // 添加提现数据
+		WithdrawStream models.WalletStream     // 提现流水
 	)
 	_ = c.Bind(&params)
 	// 数据验证
@@ -321,6 +322,19 @@ func (h *TradeController) WithdrawHandler(c *gin.Context) {
 		echo.Error(c, "WithdrawalFeesIsError", "")
 		return
 	}
+	// 扣减钱包余额,
+	Available := UsersWallet.Available - WithdrawNum
+	AvailableErr := DB.Model(models.UsersWallet{}).
+		Where("trading_pair_id", "1").
+		Where("type", "1").
+		Where("user_id", userId).
+		Update("available", Available).Error
+	if AvailableErr != nil {
+		DB.Rollback()
+		echo.Error(c, "AddError", AvailableErr.Error())
+		return
+	}
+
 	DB.Model(models.WalletAddress{}).Where("id", params.AddressId).Find(&WalletAddress)
 	// 收集添加数据
 	AddData.UserId = userId.(int)
@@ -335,8 +349,28 @@ func (h *TradeController) WithdrawHandler(c *gin.Context) {
 	AddData.Status = "0"
 	cErr := DB.Debug().Model(AddData).Create(&AddData).Error
 	if cErr != nil {
+		logger.Error(cErr)
 		DB.Rollback()
 		echo.Error(c, "AddError", cErr.Error())
+		return
+	}
+
+	// 创建钱包流水
+	WithdrawStream.Way = "2"                                                   // 流转方式 1 收入 2 支出
+	WithdrawStream.Type = "7"                                                  // 流转类型 0 未知 1 充值 2 提现 3 划转 4 快捷买币 5 空投 6 现货 7 合约 8 期权 9 手续费
+	WithdrawStream.TypeDetail = "5"                                            // 流转详细类型 0 未知 1 USDT充值 2银行卡充值 3现货划转合约 4合约划转现货 5提现 6空投支出 7空投收入 8现货支出 9现货收入 10合约支出 11合约收入 12期权支出 13期权收入
+	WithdrawStream.UserId = userId.(int)                                       // 用户id
+	WithdrawStream.Email = userInfo.(map[string]interface{})["email"].(string) // 用户邮箱
+	WithdrawStream.TradingPairId = 1                                           // 交易对id
+	WithdrawStream.TradingPairName = TradingPair.Name                          // 交易对名称
+	WithdrawStream.Amount = fmt.Sprintf("%v", WithdrawNum)                     // 流转金额
+	WithdrawStream.AmountBefore = UsersWallet.Available                        // 流转前的余额
+	WithdrawStream.AmountAfter = Available                                     // 流转后的余额
+	WithdrawStreamcErr := DB.Model(models.WalletStream{}).Create(WithdrawStream).Error
+	if WithdrawStreamcErr != nil {
+		logger.Error(errors.New(fmt.Sprintf("创建钱包流水失败，%v", WithdrawStreamcErr.Error())))
+		DB.Rollback()
+		echo.Error(c, "AddError", "")
 		return
 	}
 	DB.Commit()
@@ -391,6 +425,7 @@ func (h *TradeController) SubmitApplyBuyHandler(c *gin.Context) {
 		ApplyBuySetup  response.ApplyBuySetup  // 查询申购币种的信息
 		GetUsersWallet response.UsersWallet    // 查询申购对应币种的钱包
 		UsersWallet    response.UsersWallet    // 查询消费的钱包信息
+		UserStatus     response.User           // 查询用户状态
 		data           models.WalletStream     // 交易流水创建
 		data1          models.WalletStream     // 交易流水创建
 	)
@@ -410,6 +445,12 @@ func (h *TradeController) SubmitApplyBuyHandler(c *gin.Context) {
 	ApplyBuy.GetCurrencyId = params.GetCurrencyId       // 申购购买币种id
 	ApplyBuy.GetCurrencyNum = params.GetCurrencyNum     // 申购购买数量
 	DB := mysql.DB.Debug().Begin()
+	DB.Model(models.User{}).Where("id", userId).Find(&UserStatus)
+	if UserStatus.Status == "1" {
+		DB.Rollback()
+		echo.Error(c, "UserIsLock", "")
+		return
+	}
 	DB.Model(models.ApplyBuySetup{}).Where("id", params.GetCurrencyId).Find(&ApplyBuySetup)
 	if ApplyBuySetup.Id <= 0 {
 		echo.Error(c, "ApplyBuySetupIsNotExist", "")

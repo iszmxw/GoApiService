@@ -179,6 +179,7 @@ func (h *PerpetualContractController) TradeHandler(c *gin.Context) {
 
 	// 开启数据库
 	DB := mysql.DB.Debug().Begin()
+	DB.Model(models.User{}).Where("id", userId).Find(&UserStatus)
 	if UserStatus.Status == "1" {
 		DB.Rollback()
 		echo.Error(c, "UserIsLock", "")

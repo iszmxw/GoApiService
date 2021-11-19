@@ -136,6 +136,7 @@ func (h *OptionContractController) TradeHandler(c *gin.Context) {
 	addData.BuyPrice = request.BuyPrice                 // 购买价格
 	// 开启数据库
 	DB := mysql.DB.Debug().Begin()
+	DB.Model(models.User{}).Where("id", userId).Find(&UserStatus)
 	if UserStatus.Status == "1" {
 		DB.Rollback()
 		echo.Error(c, "UserIsLock", "")
