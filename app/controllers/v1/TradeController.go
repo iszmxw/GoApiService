@@ -295,10 +295,9 @@ func (h *TradeController) WithdrawHandler(c *gin.Context) {
 	}
 	userId, _ := c.Get("user_id")
 	userInfo, _ := c.Get("user")
-	DB := mysql.DB.Debug().Begin()
+	DB := mysql.DB.Debug()
 	DB.Model(models.User{}).Where("id", userId).Find(&UserStatus)
 	if UserStatus.Status == "1" {
-		DB.Rollback()
 		echo.Error(c, "UserIsLock", "")
 		return
 	}
@@ -323,6 +322,7 @@ func (h *TradeController) WithdrawHandler(c *gin.Context) {
 		echo.Error(c, "WithdrawalFeesIsError", "")
 		return
 	}
+	DB = DB.Begin()
 	// 扣减钱包余额,
 	Available := UsersWallet.Available - WithdrawNum
 	AvailableErr := DB.Model(models.UsersWallet{}).
