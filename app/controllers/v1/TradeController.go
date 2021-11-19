@@ -296,6 +296,7 @@ func (h *TradeController) WithdrawHandler(c *gin.Context) {
 	userId, _ := c.Get("user_id")
 	userInfo, _ := c.Get("user")
 	DB := mysql.DB.Debug().Begin()
+	DB.Model(models.User{}).Where("id", userId).Find(&UserStatus)
 	if UserStatus.Status == "1" {
 		DB.Rollback()
 		echo.Error(c, "UserIsLock", "")
