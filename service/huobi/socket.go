@@ -32,13 +32,21 @@ func main() {
 	}
 	var Topics []topics
 	for _, val := range KLineCode {
+		// 收集所有要订阅处理的 topic
 		Topics = append(Topics,
+			// 1分钟k线图
 			topics{
 				Topic:        "market." + val.KLineCode + ".kline.1min",
 				DecimalScale: val.DecimalScale,
 			},
+			// 5分钟k线图
 			topics{
 				Topic:        "market." + val.KLineCode + ".kline.5min",
+				DecimalScale: val.DecimalScale,
+			},
+			// 行情
+			topics{
+				Topic:        "market." + val.KLineCode + ".depth.step1",
 				DecimalScale: val.DecimalScale,
 			})
 	}
