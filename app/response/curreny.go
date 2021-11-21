@@ -20,3 +20,8 @@ type Currency struct {
 	UpdatedAt            helpers.TimeNormal `json:"updated_at"`             // 更新时间
 	DeletedAt            helpers.TimeNormal `json:"deleted_at"`             // 删除时间，为 null 则是没删除
 }
+
+type KLineCode struct {
+	KLineCode    string `json:"k_line_code"`   // K线图代码
+	DecimalScale int    `json:"decimal_scale"` // 自有币位数
+}

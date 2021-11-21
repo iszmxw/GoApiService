@@ -39,18 +39,20 @@ func ConnectDB() {
 	}
 }
 
-func CheckExist() {
-	a, err := Redis.Exists("ming").Result()
+func CheckExist(key string) bool {
+	a, err := Redis.Exists(key).Result()
 	if err != nil {
 		fmt.Println("判断key存在失败")
-		return
+		return false
 	}
 	if a == 1 {
 		fmt.Println("key存在")
+		return true
 	}
+	return false
 }
 
-func Add(key, value string, exTime int) (bool, error) {
+func Add(key string, value interface{}, exTime int) (bool, error) {
 	if exTime >= 0 {
 		expireTime = exTime
 	}
