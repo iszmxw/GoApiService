@@ -38,6 +38,12 @@ GOOS=linux GOARCH=amd64 go build -o optionContractService service/option_contrac
     如果notify-keyspace-events ""配置没有被注释的话要注释掉，否则不会生效。
     保存后重启redis，一定要使用当前配置文件重启，例如src/redis-server redis.conf
 
+- 打包火币网socket服务
+
+```shell
+GOOS=linux GOARCH=amd64 go build -o huobiService service/huobi/socket.go
+```
+
 - 打包api接口
 
 ```shell
