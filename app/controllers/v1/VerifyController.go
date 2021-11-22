@@ -8,6 +8,7 @@ import (
 	"goapi/app/models"
 	"goapi/app/requests"
 	"goapi/app/response"
+	conf "goapi/pkg/config"
 	"goapi/pkg/echo"
 	"goapi/pkg/logger"
 	"goapi/pkg/mysql"
@@ -16,6 +17,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"strconv"
 	"strings"
 )
 
@@ -42,11 +44,14 @@ func (h *VerifyController) VerifyPrimaryHandle(c *gin.Context) {
 	//获取token中的用户ID
 	userId, _ := c.Get("user_id")
 	logger.Info(userId.(int))
+	userInfo, _ := c.Get("user")
+	Email := userInfo.(map[string]interface{})["email"].(string)
 	v := models.Verify{
 		UserId:       userId.(int),
 		IdentityCard: params.IdentityCard,
 		FullName:     params.FullName,
-		Status:       1,
+		Email:        Email,
+		Status:       0, //前端提交后修改状态为0 后端审核后改为1
 	}
 	//v1 := models.Verify{}
 	//不能修改认证信息
@@ -54,10 +59,12 @@ func (h *VerifyController) VerifyPrimaryHandle(c *gin.Context) {
 	DB := mysql.DB.Debug().Begin()
 	var v1 models.Verify
 	DB.Model(models.Verify{}).Where("user_id", userId).Find(&v1)
-	if v1.Status != 0 {
-		echo.Error(c, "", "用户已存在数据库")
-		DB.Rollback()
-		return
+	//if v1.Status != 0 {
+	//	echo.Error(c, "", "用户已存在数据库")
+	//	return
+	//}
+	if v1.Status >= 1 {
+		echo.Error(c, "", "用户已完成初级认证")
 	}
 	CreateErr := DB.Model(models.Verify{}).Create(&v).Error
 	if CreateErr != nil {
@@ -66,7 +73,7 @@ func (h *VerifyController) VerifyPrimaryHandle(c *gin.Context) {
 		return
 	}
 	DB.Commit()
-	echo.Success(c, "ok", "添加初级验证成功", "")
+	echo.Success(c, "ok", "添加初级验证已提交", "")
 
 }
 
@@ -100,7 +107,10 @@ func (h *VerifyController) VerifyAdvancedHandle(c *gin.Context) {
 		echo.Error(c, "", "查询用户出错")
 		return
 	}
-
+	if v1.Status == 2 {
+		echo.Error(c, "", "用户已完成验证")
+		return
+	}
 	//把四个图片的base64存进一个切片
 	imgMap := make(map[string]string, 4)
 	imgMap["img_card_front"] = p.ImgCardFront
@@ -125,13 +135,19 @@ func (h *VerifyController) VerifyAdvancedHandle(c *gin.Context) {
 		}
 
 	}
-
+	//获取地址
+	ip := conf.GetString("APP_URL")
+	//获取端口
+	port := conf.GetString("app.port")
+	//api url
+	apiUrl := "/v1/api/verify/downloadImg?imgUrl="
+	//http://127.0.0.1:80/v1/api/verify/downloadImg?imgUrl=
 	//把存进图片的url写进mysql
-	v1.ImgCardFront = filedir + "img_card_front.jpg"
-	v1.ImgCardBehind = filedir + "img_card_behind.jpg"
-	v1.ImgBankFront = filedir + "img_bank_front.jpg"
-	v1.ImgBankBehind = filedir + "img_bank_behind.jpg"
-	v1.Status = 2
+	v1.ImgCardFront = ip + ":" + port + apiUrl + filedir + "img_card_front.jpg"
+	v1.ImgCardBehind = ip + ":" + port + apiUrl + filedir + "img_card_behind.jpg"
+	v1.ImgBankFront = ip + ":" + port + apiUrl + filedir + "img_bank_front.jpg"
+	v1.ImgBankBehind = ip + ":" + port + apiUrl + filedir + "img_bank_behind.jpg"
+	v1.Status = 1
 	sErr := DB.Model(models.Verify{}).Where("user_id", userId).Save(&v1).Error
 	if sErr != nil {
 		logger.Error(err)
@@ -140,8 +156,7 @@ func (h *VerifyController) VerifyAdvancedHandle(c *gin.Context) {
 		return
 	}
 	DB.Commit()
-	echo.Success(c, "ok", "添加高级验证成功", "")
-
+	echo.Success(c, "ok", "添加高级验证已提交", "")
 }
 
 // VerifyDownloadHandle 下载图片
@@ -192,6 +207,67 @@ func (h *VerifyController) UserVerifyStatusHandle(c *gin.Context) {
 		return
 	}
 	echo.Success(c, Verify, "", "")
+}
+
+// BgdVerifyHandle 后台审核用户接口
+func (h *VerifyController) BgdVerifyHandle(c *gin.Context) {
+	//获取参数
+	var params requests.BgdVerifyParam
+	_ = c.Bind(&params)
+	//参数验证
+	logger.Info(params)
+	vErr := validator.Validate.Struct(params)
+	if vErr != nil {
+		msg := validator.Lang(c.Request.Header.Get("Language")).Translate(vErr, params, c.Request.Header.Get("Language"))
+		echo.Error(c, "ValidatorError", msg)
+		return
+	}
+	//逻辑处理 1.判断用户当前状态 2.判断后台对该用户审核的结果
+	//查询user_id是否存在
+	userId := params.UserId
+	DB := mysql.DB.Debug().Begin()
+	var v1 models.Verify
+	DB.Model(models.Verify{}).Where("user_id", userId).Find(&v1)
+	//返回参数
+	status, err := strconv.Atoi(params.Status)
+	if err != nil {
+		logger.Error(err)
+		echo.Error(c, "", "输入状态不是整型")
+	}
+	switch {
+	case v1.Status == 0 && status == 1:
+		//修改用户状态为1，就是第一阶段通过状态
+		DErr := DB.Debug().Model(models.Verify{}).Where("user_id", userId).Update("status", 1).Error
+		if DErr != nil {
+			logger.Error(vErr)
+			echo.Error(c, "", "更改验证状态失败")
+			DB.Rollback()
+		}
+	case v1.Status == 0 && status == 0:
+		DErr := DB.Debug().Model(models.Verify{}).Where("user_id", userId).Update("status", 4).Error
+		if DErr != nil {
+			logger.Error(vErr)
+			echo.Error(c, "", "更改验证状态失败")
+			DB.Rollback()
+		}
+	case v1.Status == 1 && status == 1:
+		DErr := DB.Debug().Model(models.Verify{}).Where("user_id", userId).Update("status", 3).Error
+		if DErr != nil {
+			logger.Error(vErr)
+			echo.Error(c, "", "更改验证状态失败")
+			DB.Rollback()
+		}
+	case v1.Status == 1 && status == 0:
+		DErr := DB.Debug().Model(models.Verify{}).Where("user_id", userId).Update("status", 5).Error
+		if DErr != nil {
+			logger.Error(vErr)
+			echo.Error(c, "", "更改验证状态失败")
+			DB.Rollback()
+		}
+	}
+	DB.Commit()
+	echo.Error(c, "", "更改用户状态成功")
+
 }
 
 // PathExists 判断文件路径是否存在

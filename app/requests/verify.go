@@ -14,3 +14,8 @@ type ImgBase64Param struct {
 	ImgBankFront  string `json:"img_bank_front" form:"img_bank_front" validate:"required"`
 	ImgBankBehind string `json:"img_bank_behind" form:"img_bank_behind" validate:"required"`
 }
+
+type BgdVerifyParam struct {
+	UserId string `json:"user_id" form:"user_id"`
+	Status string `json:"status" form:"status"`
+}
