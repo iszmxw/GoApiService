@@ -143,6 +143,8 @@ func RegisterWebRoutes(router *gin.RouterGroup) {
 		// k线图服务
 		kLine := ApiRoute.Group("/kline")
 		{
+			// 首页调用的socket
+			kLine.Any("/index", v1Group.KlineController.WsHandler)
 			// 1分钟 5分钟数据
 			kLine.Any("/ws", v1Group.KlineController.WsHandler)
 			// 历史行情
