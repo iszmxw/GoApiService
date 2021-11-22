@@ -65,6 +65,16 @@ func (h *OptionContractController) LogHandler(c *gin.Context) {
 	if len(request.Status) > 0 {
 		where["status"] = request.Status
 	}
+	today := time.Now().Format(`"2006-01-02"`)
+	type ResultProfit struct {
+		AllResultProfit float64 `json:"all_result_profit"`
+	}
+	var data ResultProfit
+	var data1 ResultProfit
+	// 计算今日总盈
+	mysql.DB.Debug().Model(models.OptionContractTransaction{}).Select("sum(result_profit) as all_result_profit").Where("updated_at >= ?", strings.Trim(today, "\"")).Where("result_profit > ?", 0).Find(&data)
+	// 计算今日亏
+	mysql.DB.Debug().Model(models.OptionContractTransaction{}).Select("sum(result_profit) as all_result_profit").Where("updated_at >= ?", strings.Trim(today, "\"")).Where("result_profit < ?", 0).Find(&data1)
 	// 绑定接收的 json 数据到结构体中
 	DB.GetPaginate(where, "updated_at desc", int64(request.Page), int64(request.Limit), &lists)
 	logger.Info(fmt.Sprintf("%T", lists.Data))
@@ -86,8 +96,13 @@ func (h *OptionContractController) LogHandler(c *gin.Context) {
 			arr = append(arr[:i], arr[i:]...)
 		}
 	}
+	// lose
 	lists.Data = arr
-	echo.Success(c, lists, "ok", "")
+	echo.Success(c, gin.H{
+		"list":       lists,
+		"today_win":  data.AllResultProfit,
+		"today_lose": data1.AllResultProfit,
+	}, "ok", "")
 }
 
 // TradeHandler 期权合约-买张、买跌、自输入
