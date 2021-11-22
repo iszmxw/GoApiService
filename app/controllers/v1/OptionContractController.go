@@ -192,12 +192,12 @@ func (h *OptionContractController) TradeHandler(c *gin.Context) {
 		echo.Error(c, "FeeOptionContractIsError", "")
 		return
 	}
-	// 期权最低交易额拦截
-	if Price < OptionContract.Minimum {
-		logger.Error(errors.New(fmt.Sprintf("期权最低交易额拦截，当前交易额为：%v，最低交易额为：%v", Price, OptionContract.Minimum)))
-		echo.Error(c, "OptionContractMinimum", "")
-		return
-	}
+	//// 期权最低交易额拦截
+	//if Price < OptionContract.Minimum {
+	//	logger.Error(errors.New(fmt.Sprintf("期权最低交易额拦截，当前交易额为：%v，最低交易额为：%v", Price, OptionContract.Minimum)))
+	//	echo.Error(c, "OptionContractMinimum", "")
+	//	return
+	//}
 	addData.CurrencyName = Currency.Name + "/" + Currency.TradingPairName // 币种名称 例如：BTC/USDT（币种/交易对）
 	addData.TradingPairId = helpers.IntToString(Currency.TradingPairId)   // 交易对ID
 	addData.TradingPairName = Currency.TradingPairName                    // 交易对名称
