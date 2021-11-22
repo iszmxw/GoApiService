@@ -158,7 +158,6 @@ func RegisterWebRoutes(router *gin.RouterGroup) {
 			verify.POST("/advanced", v1Group.VerifyController.VerifyAdvancedHandle)
 			verify.GET("/downloadImg", v1Group.VerifyController.VerifyDownloadHandle)
 			verify.GET("/verifyStatus", v1Group.VerifyController.UserVerifyStatusHandle)
-			verify.GET("/bgdVerify", v1Group.VerifyController.BgdVerifyHandle)
 		}
 	}
 }

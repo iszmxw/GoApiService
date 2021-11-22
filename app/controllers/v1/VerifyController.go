@@ -17,7 +17,6 @@ import (
 	"net/http"
 	"os"
 	"path"
-	"strconv"
 	"strings"
 )
 
@@ -212,67 +211,6 @@ func (h *VerifyController) UserVerifyStatusHandle(c *gin.Context) {
 		return
 	}
 	echo.Success(c, Verify, "", "")
-}
-
-// BgdVerifyHandle 后台审核用户接口
-func (h *VerifyController) BgdVerifyHandle(c *gin.Context) {
-	//获取参数
-	var params requests.BgdVerifyParam
-	_ = c.Bind(&params)
-	//参数验证
-	logger.Info(params)
-	vErr := validator.Validate.Struct(params)
-	if vErr != nil {
-		msg := validator.Lang(c.Request.Header.Get("Language")).Translate(vErr, params, c.Request.Header.Get("Language"))
-		echo.Error(c, "ValidatorError", msg)
-		return
-	}
-	//逻辑处理 1.判断用户当前状态 2.判断后台对该用户审核的结果
-	//查询user_id是否存在
-	userId := params.UserId
-	DB := mysql.DB.Debug().Begin()
-	var v1 models.Verify
-	DB.Model(models.Verify{}).Where("user_id", userId).Find(&v1)
-	//返回参数
-	status, err := strconv.Atoi(params.Status)
-	if err != nil {
-		logger.Error(err)
-		echo.Error(c, "", "输入状态不是整型")
-	}
-	switch {
-	case v1.Status == 0 && status == 1:
-		//修改用户状态为1，就是第一阶段通过状态
-		DErr := DB.Debug().Model(models.Verify{}).Where("user_id", userId).Update("status", 1).Error
-		if DErr != nil {
-			logger.Error(vErr)
-			echo.Error(c, "", "更改验证状态失败")
-			DB.Rollback()
-		}
-	case v1.Status == 0 && status == 0:
-		DErr := DB.Debug().Model(models.Verify{}).Where("user_id", userId).Update("status", 4).Error
-		if DErr != nil {
-			logger.Error(vErr)
-			echo.Error(c, "", "更改验证状态失败")
-			DB.Rollback()
-		}
-	case v1.Status == 1 && status == 1:
-		DErr := DB.Debug().Model(models.Verify{}).Where("user_id", userId).Update("status", 3).Error
-		if DErr != nil {
-			logger.Error(vErr)
-			echo.Error(c, "", "更改验证状态失败")
-			DB.Rollback()
-		}
-	case v1.Status == 1 && status == 0:
-		DErr := DB.Debug().Model(models.Verify{}).Where("user_id", userId).Update("status", 5).Error
-		if DErr != nil {
-			logger.Error(vErr)
-			echo.Error(c, "", "更改验证状态失败")
-			DB.Rollback()
-		}
-	}
-	DB.Commit()
-	echo.Error(c, "", "更改用户状态成功")
-
 }
 
 // PathExists 判断文件路径是否存在
