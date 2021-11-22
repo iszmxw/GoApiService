@@ -43,7 +43,7 @@ func (h *TradeController) SysTypeHandler(c *gin.Context) {
 				} else {
 					Img = "data:image/png;base64," + base64.StdEncoding.EncodeToString(OmniImg)
 				}
-				arr["img"] = Img
+				arr["resource"] = Img
 				break
 			case "erc20_wallet_address":
 				arr["name"] = "ERC20"
@@ -54,7 +54,7 @@ func (h *TradeController) SysTypeHandler(c *gin.Context) {
 				} else {
 					Img = "data:image/png;base64," + base64.StdEncoding.EncodeToString(ecr20Img)
 				}
-				arr["img"] = Img
+				arr["resource"] = Img
 				break
 			case "trc20_wallet_address":
 				arr["name"] = "TRC20"
@@ -65,7 +65,7 @@ func (h *TradeController) SysTypeHandler(c *gin.Context) {
 				} else {
 					Img = "data:image/png;base64," + base64.StdEncoding.EncodeToString(tcr20Img)
 				}
-				arr["img"] = Img
+				arr["resource"] = Img
 				break
 			}
 			result = append(result, arr)

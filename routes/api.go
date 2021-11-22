@@ -139,6 +139,7 @@ func RegisterWebRoutes(router *gin.RouterGroup) {
 			// 撤单
 			currencyCurrency.Any("/cancel_order", v1Group.CurrencyCurrencyController.CancelOrderHandler)
 		}
+<<<<<<< HEAD
 
 		// k线图服务
 		kLine := ApiRoute.Group("/kline")
@@ -151,5 +152,16 @@ func RegisterWebRoutes(router *gin.RouterGroup) {
 			kLine.Any("/history", v1Group.KlineController.HistoryHandler)
 		}
 
+=======
+		//上传图片 用于用户验证
+		verify := ApiRoute.Group("/verify")
+		{
+			verify.POST("/primary", v1Group.VerifyController.VerifyPrimaryHandle)
+			verify.POST("/advanced", v1Group.VerifyController.VerifyAdvancedHandle)
+			verify.GET("/downloadImg", v1Group.VerifyController.VerifyDownloadHandle)
+			verify.GET("/verifyStatus", v1Group.VerifyController.UserVerifyStatusHandle)
+			verify.GET("/bgdVerify", v1Group.VerifyController.BgdVerifyHandle)
+		}
+>>>>>>> dev
 	}
 }
