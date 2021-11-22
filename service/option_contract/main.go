@@ -93,9 +93,10 @@ func UpdateResult(id string) {
 		logger.Error(errors.New(fmt.Sprintf("字符串转float64失败: %v", err2.Error())))
 		return
 	}
+	resultProfit := -helpers.StringToInt(OptionContractTransaction.Price) // 初始化默认盈利为亏了，亏的钱为订单的交易金额
 	// 更新交割结果
 	Updates["status"] = "1"
-	Updates["result_profit"] = "0" // 初始化默认盈利为 0
+	Updates["result_profit"] = resultProfit
 	// 计算交割结果
 	// 涨：收盘价大于开盘价
 	if clinchPrice > BuyPrice {
@@ -180,7 +181,7 @@ func UpdateResult(id string) {
 					logger.Info("当前用户买跌，干扰交割结果为涨")
 				}
 				// 最终盈利
-				Updates["result_profit"] = 0
+				Updates["result_profit"] = resultProfit
 				logger.Info(fmt.Sprintf("风控盈利更新交割结果 : %v", Updates))
 			}
 		}
