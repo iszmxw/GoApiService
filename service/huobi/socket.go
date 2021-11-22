@@ -21,6 +21,7 @@ func init() {
 	bootstrap.SetupDB()
 	// 定义日志目录
 	logger.Service = "huobiService"
+	logger.Init()
 }
 
 func main() {

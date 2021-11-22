@@ -28,6 +28,7 @@ func init() {
 	bootstrap.SetupDB()
 	// 定义日志目录
 	logger.Service = "optionContractService"
+	logger.Init()
 }
 
 var wg sync.WaitGroup
