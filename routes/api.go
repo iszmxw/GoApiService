@@ -145,6 +145,8 @@ func RegisterWebRoutes(router *gin.RouterGroup) {
 		{
 			// 1分钟 5分钟数据
 			kLine.Any("/ws", v1Group.KlineController.WsHandler)
+			// 历史行情
+			kLine.Any("/history", v1Group.KlineController.HistoryHandler)
 		}
 
 	}

@@ -48,6 +48,31 @@ func main() {
 			topics{
 				Topic:        "market." + val.KLineCode + ".depth.step1",
 				DecimalScale: val.DecimalScale,
+			},
+			// K线图历史 1分钟
+			topics{
+				Topic:        "market." + val.KLineCode + ".kline.1min",
+				DecimalScale: val.DecimalScale,
+			},
+			// K线图历史 5分钟
+			topics{
+				Topic:        "market." + val.KLineCode + ".kline.5min",
+				DecimalScale: val.DecimalScale,
+			},
+			// K线图历史 30分钟
+			topics{
+				Topic:        "market." + val.KLineCode + ".kline.30min",
+				DecimalScale: val.DecimalScale,
+			},
+			// K线图历史 60分钟
+			topics{
+				Topic:        "market." + val.KLineCode + ".kline.60min",
+				DecimalScale: val.DecimalScale,
+			},
+			// K线图历史 60分钟
+			topics{
+				Topic:        "market." + val.KLineCode + ".kline.1day",
+				DecimalScale: val.DecimalScale,
 			})
 	}
 	start := "ok"

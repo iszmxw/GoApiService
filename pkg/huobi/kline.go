@@ -3,7 +3,10 @@ package huobi
 import (
 	"errors"
 	"fmt"
+	"goapi/pkg/logger"
 	"goapi/pkg/request"
+	"io/ioutil"
+	"net/http"
 )
 
 type KData struct {
@@ -55,4 +58,17 @@ func Kline(kline, name string) (float64, error) {
 		Price = resp["data"].([]interface{})[0].(map[string]interface{})["high"]
 	}
 	return Price.(float64), nil
+}
+
+// RequestHuoBiKline 封装火币网请求K线图http请求  "market.btcusdt.kline.5min"
+func RequestHuoBiKline(symbol string, period string) ([]byte, error) {
+	url := fmt.Sprintf("https://api.huobi.pro/market/history/kline?period=%s&size=300&symbol=%s", period, symbol)
+	logger.Info(url)
+	response, err := http.Get(url)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	body, _ := ioutil.ReadAll(response.Body)
+	return body, nil
 }

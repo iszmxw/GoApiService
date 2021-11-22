@@ -31,6 +31,7 @@ func Client() gin.HandlerFunc {
 		case "/v1/api/index/system_info":
 			// websocket
 		case "/v1/api/kline/ws":
+		case "/v1/api/kline/history":
 			// 继续往下面执行
 			c.Next()
 			break
