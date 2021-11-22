@@ -47,7 +47,7 @@ func (h *KlineController) WsHandler(c *gin.Context) {
 		//对数据进行切割，读取参数
 		//如果请求的是 "market.btcusdt.kline.1min" ,订阅这条信息，然后再返回
 		msg := string(message)
-		msg = strings.Trim(msg, "\"\"")
+		msg = strings.Trim(msg, "\"")
 		logger.Info(msg)
 
 		// 24 小时内一个长连接禁止重复订阅相同的 topic

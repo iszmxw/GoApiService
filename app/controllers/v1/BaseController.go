@@ -14,9 +14,6 @@ type Group struct {
 	OptionContractController
 	PerpetualContractController
 	CurrencyCurrencyController
-<<<<<<< HEAD
 	KlineController
-=======
 	VerifyController
->>>>>>> dev
 }
