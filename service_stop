@@ -1,0 +1,22 @@
+#!/bin/sh
+
+# 重启 apiService
+apiService=$(ps -ef|grep "/apiService" | grep -v "grep" | awk '{print $2}')
+if [ "$apiService" ]
+then
+  kill -9 "$apiService"
+fi
+
+# 重启 huobiService
+huobiService=$(ps -ef|grep "/huobiService" | grep -v "grep" | awk '{print $2}')
+if [ "$huobiService" ]
+then
+  kill -9 "$huobiService"
+fi
+
+# 重启 optionContractService
+optionContractService=$(ps -ef|grep "/optionContractService" | grep -v "grep" | awk '{print $2}')
+if [ "$optionContractService" ]
+then
+  kill -9 "$optionContractService"
+fi

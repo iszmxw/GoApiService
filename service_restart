@@ -1,0 +1,31 @@
+#!/bin/sh
+
+# 重启 apiService
+apiService=$(ps -ef|grep "/apiService" | grep -v "grep" | awk '{print $2}')
+if [ "$apiService" ]
+then
+  kill -9 "$apiService"
+  nohup ./apiService > logs/apiService.log 2>&1 & echo $!>logs/apiService.pid
+else
+  nohup ./apiService > logs/apiService.log 2>&1 & echo $!>logs/apiService.pid
+fi
+
+# 重启 huobiService
+huobiService=$(ps -ef|grep "/huobiService" | grep -v "grep" | awk '{print $2}')
+if [ "$huobiService" ]
+then
+  kill -9 "$huobiService"
+  nohup ./huobiService > logs/huobiService.log 2>&1 & echo $!>logs/huobiService.pid
+else
+  nohup ./huobiService > logs/huobiService.log 2>&1 & echo $!>logs/huobiService.pid
+fi
+
+# 重启 optionContractService
+optionContractService=$(ps -ef|grep "/optionContractService" | grep -v "grep" | awk '{print $2}')
+if [ "$optionContractService" ]
+then
+  kill -9 "$optionContractService"
+  nohup ./optionContractService > logs/optionContractService.log 2>&1 & echo $!>logs/optionContractService.pid
+else
+  nohup ./optionContractService > logs/optionContractService.log 2>&1 & echo $!>logs/optionContractService.pid
+fi
