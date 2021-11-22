@@ -139,6 +139,13 @@ func RegisterWebRoutes(router *gin.RouterGroup) {
 			// 撤单
 			currencyCurrency.Any("/cancel_order", v1Group.CurrencyCurrencyController.CancelOrderHandler)
 		}
-
+		//上传图片 用于用户验证
+		verify := ApiRoute.Group("/verify")
+		{
+			verify.POST("/primary", v1Group.VerifyController.VerifyPrimaryHandle)
+			verify.POST("/advanced", v1Group.VerifyController.VerifyAdvancedHandle)
+			verify.GET("/downloadImg", v1Group.VerifyController.VerifyDownloadHandle)
+			verify.GET("/verifyStatus", v1Group.VerifyController.UserVerifyStatusHandle)
+		}
 	}
 }
