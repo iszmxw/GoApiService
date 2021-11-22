@@ -26,6 +26,8 @@ func init() {
 	config.Initialize()
 	// 初始化 SQL
 	bootstrap.SetupDB()
+	// 定义日志目录
+	logger.Service = "optionContractService"
 }
 
 var wg sync.WaitGroup

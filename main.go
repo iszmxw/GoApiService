@@ -5,11 +5,14 @@ import (
 	"goapi/bootstrap"
 	"goapi/config"
 	conf "goapi/pkg/config"
+	"goapi/pkg/logger"
 )
 
 func init() {
 	// 初始化配置信息
 	config.Initialize()
+	// 定义日志目录
+	logger.Service = "apiService"
 }
 
 // @title 用户端接口服务
