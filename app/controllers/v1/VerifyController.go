@@ -63,8 +63,13 @@ func (h *VerifyController) VerifyPrimaryHandle(c *gin.Context) {
 	//	echo.Error(c, "", "用户已存在数据库")
 	//	return
 	//}
+	if v1.UserId != 0 {
+		echo.Error(c, "", "已经提交初级验证信息")
+		return
+	}
 	if v1.Status >= 1 {
 		echo.Error(c, "", "用户已完成初级认证")
+		return
 	}
 	CreateErr := DB.Model(models.Verify{}).Create(&v).Error
 	if CreateErr != nil {
