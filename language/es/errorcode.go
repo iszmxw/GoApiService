@@ -50,4 +50,5 @@ type ErrorCode struct {
 	UserIsLock                          string `code:"10044" msg:"El estado del usuario está bloqueado"`
 	SearchTimeErr                       string `code:"10045" msg:"El formato de la hora de búsqueda es incorrecto, por ejemplo: 2006-01-02"`
 	OptionContractMinimum               string `code:"10046" msg:"El volumen de transacciones actual es menor que el más consumido"`
+	OrderStatusConfirm                  string `code:"10047" msg:"El pedido ha sido confirmado, no lo opere con frecuencia."`
 }

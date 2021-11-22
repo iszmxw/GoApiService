@@ -50,4 +50,5 @@ type ErrorCode struct {
 	UserIsLock                          string `code:"10044" msg:"사용자 상태가 잠겨 있습니다."`
 	SearchTimeErr                       string `code:"10045" msg:"검색 시간 형식이 잘못되었습니다(예: 2006-01-02)."`
 	OptionContractMinimum               string `code:"10046" msg:"현재 거래량이 가장 많이 소비된 것보다 적습니다."`
+	OrderStatusConfirm                  string `code:"10047" msg:"주문이 확정되었으니 자주 조작하지 마세요"`
 }

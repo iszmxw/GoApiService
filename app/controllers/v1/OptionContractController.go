@@ -316,19 +316,13 @@ func (h *OptionContractController) LiquidationHandler(c *gin.Context) {
 	DB.Model(models.OptionContractTransaction{}).
 		Where(models.Prefix("$_option_contract_transaction.id"), params.Id).
 		Where(models.Prefix("$_option_contract_transaction.email"), userInfo.(map[string]interface{})["email"]).
-		Where(models.Prefix("$_option_contract_transaction.status"), "0").
 		Joins(models.Prefix("left join $_currency on $_option_contract_transaction.currency_id=$_currency.id")).
 		Select(models.Prefix("$_option_contract_transaction.*,$_currency.k_line_code")).
 		Find(&result)
-	if result.Id <= 0 {
-		DB.Rollback()
-		echo.Error(c, "ValidatorError", "id error")
-		return
-	}
 	if result.Status > 0 {
 		DB.Rollback()
 		logger.Error(errors.New("该订单已确认"))
-		echo.Error(c, "ValidatorError", "")
+		echo.Error(c, "OrderStatusConfirm", "")
 		return
 	}
 

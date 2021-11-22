@@ -50,4 +50,5 @@ type ErrorCode struct {
 	UserIsLock                          string `code:"10044" msg:"User status is locked"`
 	SearchTimeErr                       string `code:"10045" msg:"Incorrect search time eg: 2006-01-02"`
 	OptionContractMinimum               string `code:"10046" msg:"The current transaction volume is lower than the most consumed"`
+	OrderStatusConfirm                  string `code:"10047" msg:"The order has been confirmed, please do not operate frequently"`
 }

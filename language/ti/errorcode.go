@@ -50,4 +50,5 @@ type ErrorCode struct {
 	UserIsLock                          string `code:"10044" msg:"สถานะผู้ใช้ถูกล็อค"`
 	SearchTimeErr                       string `code:"10045" msg:"รูปแบบเวลาค้นหาไม่ถูกต้อง eg: 2006-01-02"`
 	OptionContractMinimum               string `code:"10046" msg:"ปริมาณธุรกรรมปัจจุบันต่ำกว่าปริมาณการใช้มากที่สุด"`
+	OrderStatusConfirm                  string `code:"10047" msg:"ยืนยันการสั่งซื้อแล้ว โปรดอย่าดำเนินการบ่อย"`
 }

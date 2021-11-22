@@ -338,16 +338,11 @@ func (h *PerpetualContractController) LiquidationHandler(c *gin.Context) {
 	where := cmap.New().Items()
 	where["email"] = userInfo.(map[string]interface{})["email"]
 	where["id"] = params.Id
-	where["status"] = "0"
 	DB := mysql.DB.Begin().Debug()
 	DB.Model(models.PerpetualContractTransaction{}).Where(where).Find(&PerpetualContractTransaction)
-	if PerpetualContractTransaction.Id <= 0 {
-		echo.Error(c, "ValidatorError", "id error")
-		return
-	}
 	if PerpetualContractTransaction.Status > 0 {
 		logger.Error(errors.New("该订单已确认"))
-		echo.Error(c, "ValidatorError", "")
+		echo.Error(c, "OrderStatusConfirm", "")
 		return
 	}
 	// 查询用户钱包信息

@@ -50,4 +50,5 @@ type ErrorCode struct {
 	UserIsLock                          string `code:"10044" msg:"用戶狀態已鎖定"`
 	SearchTimeErr                       string `code:"10045" msg:"搜索時間格式不正確 eg: 2006-01-02"`
 	OptionContractMinimum               string `code:"10046" msg:"當前交易額，低於最消費"`
+	OrderStatusConfirm                  string `code:"10047" msg:"該訂單已確認，請勿頻繁操作"`
 }

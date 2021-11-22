@@ -49,4 +49,6 @@ type ErrorCode1 struct {
 	CurrencyTypeIsNotAllowed            string `code:"10043" msg:"该交易对暂不允许该类型交易，如有需要请联系运营"`
 	UserIsLock                          string `code:"10044" msg:"用户状态已锁定"`
 	SearchTimeErr                       string `code:"10045" msg:"搜索时间格式不正确 eg: 2006-01-02"`
+	OptionContractMinimum               string `code:"10046" msg:"当前交易额，低于最低消费"`
+	OrderStatusConfirm                  string `code:"10047" msg:"该订单已确认，请勿频繁操作"`
 }

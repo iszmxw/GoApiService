@@ -50,4 +50,5 @@ type ErrorCode struct {
 	UserIsLock                          string `code:"10044" msg:"Trạng thái người dùng bị khóa"`
 	SearchTimeErr                       string `code:"10045" msg:"Định dạng thời gian tìm kiếm không chính xác eg: 2006-01-02"`
 	OptionContractMinimum               string `code:"10046" msg:"Lượng giao dịch hiện tại thấp hơn lượng tiêu thụ nhiều nhất"`
+	OrderStatusConfirm                  string `code:"10047" msg:"Đơn hàng đã được xác nhận, vui lòng không hoạt động thường xuyên"`
 }
