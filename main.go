@@ -43,5 +43,10 @@ func main() {
 	router := bootstrap.SetupRoute()
 	// 启动路由
 	fmt.Println("启动路由")
-	_ = router.Run(fmt.Sprintf(":%s", conf.GetString("app.port")))
+	if conf.GetString("app.https") == "1" {
+		//初始化routes
+		_ = router.RunTLS(fmt.Sprintf(":%s", conf.GetString("app.port")), "./config/ssl.pem", "./config/ssl.key")
+	} else {
+		_ = router.Run(fmt.Sprintf(":%s", conf.GetString("app.port")))
+	}
 }

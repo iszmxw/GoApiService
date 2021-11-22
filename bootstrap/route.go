@@ -6,6 +6,7 @@ import (
 	"github.com/swaggo/gin-swagger/swaggerFiles"
 	"goapi/app/middlewares/v1"
 	_ "goapi/docs"
+	conf "goapi/pkg/config"
 	"goapi/routes"
 )
 
@@ -13,6 +14,10 @@ import (
 func SetupRoute() *gin.Engine {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
+	// 支持wss
+	if conf.GetString("app.https") == "1" {
+		router.Use(v1.TlsHandler())
+	}
 	router.Use(v1.TraceLogger()) // 日志追踪
 	router.Use(v1.Cors())        // 跨域
 	// swagger docs 文档
