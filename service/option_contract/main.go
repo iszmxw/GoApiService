@@ -24,11 +24,11 @@ import (
 func init() {
 	// 初始化配置信息
 	config.Initialize()
-	// 初始化 SQL
-	bootstrap.SetupDB()
 	// 定义日志目录
 	logger.Service = "optionContractService"
 	logger.Init()
+	// 初始化 SQL
+	bootstrap.SetupDB()
 }
 
 var wg sync.WaitGroup
@@ -93,7 +93,7 @@ func UpdateResult(id string) {
 		logger.Error(errors.New(fmt.Sprintf("字符串转float64失败: %v", err2.Error())))
 		return
 	}
-	resultProfit := -helpers.StringToInt(OptionContractTransaction.Price) // 初始化默认盈利为亏了，亏的钱为订单的交易金额
+	resultProfit := -result.Price // 初始化默认盈利为亏了，亏的钱为订单的交易金额
 	// 更新交割结果
 	Updates["status"] = "1"
 	Updates["result_profit"] = resultProfit
