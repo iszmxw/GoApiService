@@ -1,2 +1,4 @@
 !.gitignore
 *.pid
+*.log
+*.log.gz
