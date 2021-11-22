@@ -367,7 +367,7 @@ func (h *TradeController) WithdrawHandler(c *gin.Context) {
 	WithdrawStream.Amount = fmt.Sprintf("%v", WithdrawNum)                     // 流转金额
 	WithdrawStream.AmountBefore = UsersWallet.Available                        // 流转前的余额
 	WithdrawStream.AmountAfter = Available                                     // 流转后的余额
-	WithdrawStreamcErr := DB.Model(models.WalletStream{}).Create(WithdrawStream).Error
+	WithdrawStreamcErr := DB.Model(models.WalletStream{}).Create(&WithdrawStream).Error
 	if WithdrawStreamcErr != nil {
 		logger.Error(errors.New(fmt.Sprintf("创建钱包流水失败，%v", WithdrawStreamcErr.Error())))
 		DB.Rollback()
