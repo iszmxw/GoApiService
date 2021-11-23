@@ -18,8 +18,7 @@ func init() {
 	// 初始化配置信息
 	config.Initialize()
 	// 定义日志目录
-	logger.Service = "huobiService"
-	logger.Init()
+	logger.Init("huobiService")
 	// 初始化 SQL
 	bootstrap.SetupDB()
 }

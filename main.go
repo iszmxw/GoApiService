@@ -12,8 +12,7 @@ func init() {
 	// 初始化配置信息
 	config.Initialize()
 	// 定义日志目录
-	logger.Service = "apiService"
-	logger.Init()
+	logger.Init("apiService")
 }
 
 // @title 用户端接口服务
