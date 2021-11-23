@@ -121,7 +121,7 @@ func (h *VerifyController) VerifyAdvancedHandle(c *gin.Context) {
 	}
 	if v1.Status == -1 {
 		filedir := fmt.Sprintf("./resource/photo/%d/", userId)
-		Rerr := os.Remove(filedir)
+		Rerr := os.RemoveAll(filedir)
 		if Rerr != nil {
 			logger.Error(Rerr)
 			echo.Error(c, "", "删除图片失败")
