@@ -70,6 +70,30 @@ GOOS=linux GOARCH=amd64 go build -o apiService main.go
 卖出百分比算法：市价（限价）*卖出数量=所得货币
 ```
 
+
+## 支付相关
+
+## 回调参数
+```json
+{
+    "merchant_no":"070255",
+    "timestamp":"1637661524",
+    "sign_type":"MD5",
+    "params":{
+        "merchant_ref":"I2021112317564133689",
+        "system_ref":"TQ1637661402N61AT",
+        "amount":"100.00",
+        "pay_amount":"100.00",
+        "fee":"6.00",
+        "status":1,
+        "success_time":1637661523,
+        "extend_params":"",
+        "product":"ThaiQR"
+    },
+    "sign":"2d1ca4805be8b51f62f49f6fad1c879e"
+}
+```
+
 ## 接口文档
 
 ### 公共请求字段

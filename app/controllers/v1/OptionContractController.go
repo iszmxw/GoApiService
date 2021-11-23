@@ -56,6 +56,7 @@ func (h *OptionContractController) LogHandler(c *gin.Context) {
 		return
 	}
 	userInfo, _ := c.Get("user")
+	userId, _ := c.Get("user_id")
 	email := userInfo.(map[string]interface{})["email"].(string)
 	where := cmap.New().Items()
 	where["email"] = email
@@ -72,9 +73,9 @@ func (h *OptionContractController) LogHandler(c *gin.Context) {
 	var data ResultProfit
 	var data1 ResultProfit
 	// 计算今日总盈
-	mysql.DB.Debug().Model(models.OptionContractTransaction{}).Select("sum(result_profit) as all_result_profit").Where("updated_at >= ?", strings.Trim(today, "\"")).Where("result_profit > ?", 0).Find(&data)
+	mysql.DB.Debug().Model(models.OptionContractTransaction{}).Select("sum(result_profit) as all_result_profit").Where("user_id", userId).Where("updated_at >= ?", strings.Trim(today, "\"")).Where("result_profit > ?", 0).Find(&data)
 	// 计算今日亏
-	mysql.DB.Debug().Model(models.OptionContractTransaction{}).Select("sum(result_profit) as all_result_profit").Where("updated_at >= ?", strings.Trim(today, "\"")).Where("result_profit < ?", 0).Find(&data1)
+	mysql.DB.Debug().Model(models.OptionContractTransaction{}).Select("sum(result_profit) as all_result_profit").Where("user_id", userId).Where("updated_at >= ?", strings.Trim(today, "\"")).Where("result_profit < ?", 0).Find(&data1)
 	// 绑定接收的 json 数据到结构体中
 	DB.GetPaginate(where, "updated_at desc", int64(request.Page), int64(request.Limit), &lists)
 	logger.Info(fmt.Sprintf("%T", lists.Data))
