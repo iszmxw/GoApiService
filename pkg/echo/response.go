@@ -54,5 +54,6 @@ func Error(c *gin.Context, code string, msg string) {
 // Success  错误返回封装
 func Success(c *gin.Context, result interface{}, msg string, code string) {
 	code = "200"
+	logger.Logger.WithOptions(zap.AddCallerSkip(1)).Info("成功返回", zap.Any("返回数据", result))
 	Rjson(c, result, msg, code, true)
 }
