@@ -43,6 +43,40 @@ func (h *VerifyController) VerifyPrimaryHandle(c *gin.Context) {
 	//获取token中的用户ID
 	userId, _ := c.Get("user_id")
 	logger.Info(userId.(int))
+
+	//v1 := models.Verify{}
+	//不能修改认证信息
+	//查询user_id是否存在
+	DB := mysql.DB.Debug().Begin()
+	var v1 models.Verify
+	DB.Model(models.Verify{}).Where("user_id", userId).Find(&v1)
+
+	if v1.Status == -1 {
+
+		SErr := DB.Model(models.Verify{}).Where("user_id", userId).Updates(map[string]interface{}{"identity_card": params.IdentityCard, "status": 0, "full_name": params.FullName}).Error
+		if SErr != nil {
+			DB.Rollback()
+			logger.Error(SErr)
+			return
+		}
+		logger.Info("验证失败后重新验证")
+		echo.Success(c, "ok", "已重新提交初级验证信息", "")
+		DB.Commit()
+		return
+	}
+	//if v1.UserId != 0 {
+	//	echo.Error(c, "", "已经提交初级验证信息")
+	//	return
+	//}
+	if v1.Status >= 1 {
+		echo.Error(c, "", "用户已完成初级认证")
+		return
+	}
+	if v1.UserId != 0 {
+		echo.Error(c, "", "已提交初级认证,请等待审核通知")
+		return
+	}
+	//都不符合上面两种情况才创建
 	userInfo, _ := c.Get("user")
 	Email := userInfo.(map[string]interface{})["email"].(string)
 	v := models.Verify{
@@ -52,24 +86,7 @@ func (h *VerifyController) VerifyPrimaryHandle(c *gin.Context) {
 		Email:        Email,
 		Status:       0, //前端提交后修改状态为0 后端审核后改为1
 	}
-	//v1 := models.Verify{}
-	//不能修改认证信息
-	//查询user_id是否存在
-	DB := mysql.DB.Debug().Begin()
-	var v1 models.Verify
-	DB.Model(models.Verify{}).Where("user_id", userId).Find(&v1)
-	//if v1.Status != 0 {
-	//	echo.Error(c, "", "用户已存在数据库")
-	//	return
-	//}
-	if v1.UserId != 0 {
-		echo.Error(c, "", "已经提交初级验证信息")
-		return
-	}
-	if v1.Status >= 1 {
-		echo.Error(c, "", "用户已完成初级认证")
-		return
-	}
+
 	CreateErr := DB.Model(models.Verify{}).Create(&v).Error
 	if CreateErr != nil {
 		echo.Error(c, "", "添加用户验证信息失败")
@@ -77,7 +94,7 @@ func (h *VerifyController) VerifyPrimaryHandle(c *gin.Context) {
 		return
 	}
 	DB.Commit()
-	echo.Success(c, "ok", "添加初级验证已提交", "")
+	echo.Success(c, "ok", "初级验证已提交", "")
 
 }
 
@@ -137,7 +154,7 @@ func (h *VerifyController) VerifyAdvancedHandle(c *gin.Context) {
 	imgMap["img_bank_behind"] = p.ImgBankBehind
 	//
 	filedir := fmt.Sprintf("./resource/photo/%d/", userId)
-	Eerr := os.Mkdir(filedir, 0755)
+	Eerr := os.MkdirAll(filedir, 0755)
 	if Eerr != nil {
 		logger.Error(Eerr)
 		echo.Error(c, "", "创建文件夹失败")
@@ -154,17 +171,17 @@ func (h *VerifyController) VerifyAdvancedHandle(c *gin.Context) {
 
 	}
 	//获取地址
-	ip := conf.GetString("APP_URL")
+	ip := conf.GetString("IMG_URL")
 	//获取端口
-	port := conf.GetString("app.port")
+	//port := conf.GetString("app.port")
 	//api url
 	apiUrl := "/v1/api/verify/downloadImg?imgUrl="
 	//http://127.0.0.1:80/v1/api/verify/downloadImg?imgUrl=
 	//把存进图片的url写进mysql
-	v1.ImgCardFront = ip + ":" + port + apiUrl + filedir + "img_card_front.jpg"
-	v1.ImgCardBehind = ip + ":" + port + apiUrl + filedir + "img_card_behind.jpg"
-	v1.ImgBankFront = ip + ":" + port + apiUrl + filedir + "img_bank_front.jpg"
-	v1.ImgBankBehind = ip + ":" + port + apiUrl + filedir + "img_bank_behind.jpg"
+	v1.ImgCardFront = ip + apiUrl + filedir + "img_card_front.jpg"
+	v1.ImgCardBehind = ip + apiUrl + filedir + "img_card_behind.jpg"
+	v1.ImgBankFront = ip + apiUrl + filedir + "img_bank_front.jpg"
+	v1.ImgBankBehind = ip + apiUrl + filedir + "img_bank_behind.jpg"
 	v1.Status = 1
 	sErr := DB.Model(models.Verify{}).Where("user_id", userId).Save(&v1).Error
 	if sErr != nil {
@@ -174,7 +191,7 @@ func (h *VerifyController) VerifyAdvancedHandle(c *gin.Context) {
 		return
 	}
 	DB.Commit()
-	echo.Success(c, "ok", "添加高级验证已提交", "")
+	echo.Success(c, "ok", "高级验证已提交,请等待审核", "")
 }
 
 // VerifyDownloadHandle 下载图片

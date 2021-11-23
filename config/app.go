@@ -23,5 +23,8 @@ func init() {
 
 		// 用以生成链接
 		"url": config.Env("APP_URL", "http://localhost:8888"),
+
+		// IMG URL用于存放图片的路径
+		"img_url": config.Env("IMG_URL", "http://localhost:80"),
 	})
 }
