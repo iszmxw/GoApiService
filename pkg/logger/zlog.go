@@ -20,7 +20,7 @@ var (
 
 // 初始化日志配置
 
-func Init() {
+func init() {
 	filename := ""
 	if len(Service) > 0 {
 		filename = "logs/" + Service + "/" + time.Now().Format("2006-01-02") + ".log"

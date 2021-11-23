@@ -13,7 +13,6 @@ func init() {
 	config.Initialize()
 	// 定义日志目录
 	logger.Service = "apiService"
-	logger.Init()
 }
 
 // @title 用户端接口服务
