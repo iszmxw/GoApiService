@@ -13,14 +13,13 @@ import (
 const loggerKey = iota
 
 var (
-	Service   string
 	RequestId string
 	Logger    *zap.Logger
 )
 
 // 初始化日志配置
 
-func init() {
+func Init(Service string) {
 	filename := ""
 	if len(Service) > 0 {
 		filename = "logs/" + Service + "/" + time.Now().Format("2006-01-02") + ".log"
