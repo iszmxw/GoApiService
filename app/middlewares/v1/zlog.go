@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/unrolled/secure"
 	"go.uber.org/zap"
 	"goapi/pkg/config"
 	"goapi/pkg/logger"
@@ -13,6 +14,20 @@ import (
 )
 
 const DefaultHeader = "Tracking-Id"
+
+func TlsHandler() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		secureMiddleware := secure.New(secure.Options{
+			SSLRedirect: true,
+			SSLHost:     fmt.Sprintf("localhost:%s", config.GetString("app.port")),
+		})
+		err := secureMiddleware.Process(c.Writer, c.Request)
+		if err != nil {
+			return
+		}
+		c.Next()
+	}
+}
 
 func TraceLogger() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
