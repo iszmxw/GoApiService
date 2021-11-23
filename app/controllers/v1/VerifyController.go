@@ -115,6 +115,20 @@ func (h *VerifyController) VerifyAdvancedHandle(c *gin.Context) {
 		echo.Error(c, "", "用户已完成验证")
 		return
 	}
+	if v1.Status == 0 {
+		echo.Error(c, "", "初级验证未通过")
+		return
+	}
+	if v1.Status == -1 {
+		filedir := fmt.Sprintf("./resource/photo/%d/", userId)
+		Rerr := os.Remove(filedir)
+		if Rerr != nil {
+			logger.Error(Rerr)
+			echo.Error(c, "", "删除图片失败")
+			return
+		}
+		logger.Info("删除失败认证的图片")
+	}
 	//把四个图片的base64存进一个切片
 	imgMap := make(map[string]string, 4)
 	imgMap["img_card_front"] = p.ImgCardFront
