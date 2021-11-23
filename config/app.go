@@ -23,5 +23,7 @@ func init() {
 
 		// 用以生成链接
 		"url": config.Env("APP_URL", "http://localhost:8888"),
+
+		"https": config.Env("HTTPS", "0"),
 	})
 }

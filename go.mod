@@ -22,6 +22,7 @@ require (
 	github.com/spf13/viper v1.9.0
 	github.com/swaggo/gin-swagger v1.3.3
 	github.com/swaggo/swag v1.7.4
+	github.com/unrolled/secure v1.0.9 // indirect
 	go.uber.org/zap v1.19.1
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 	gorm.io/driver/mysql v1.2.0
