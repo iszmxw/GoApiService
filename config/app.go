@@ -23,6 +23,7 @@ func init() {
 
 		// 用以生成链接
 		"url": config.Env("APP_URL", "http://127.0.0.1:8888"),
+
 		// php服务的地址
 		"php_url": config.Env("PHP_URL", "http://127.0.0.1:10087"),
 
