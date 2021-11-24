@@ -2,6 +2,7 @@ package v1
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -10,11 +11,14 @@ import (
 	"goapi/app/models"
 	"goapi/app/requests"
 	"goapi/app/response"
+	"goapi/pkg/config"
 	"goapi/pkg/echo"
 	"goapi/pkg/helpers"
 	"goapi/pkg/logger"
 	"goapi/pkg/mysql"
 	"goapi/pkg/validator"
+	"io/ioutil"
+	"net/http"
 	"strconv"
 )
 
@@ -88,10 +92,30 @@ func (h *TradeController) ReChargeHandler(c *gin.Context) {
 		echo.Error(c, "ValidatorError", msg)
 		return
 	}
+	token := c.Request.Header.Get("token")
+	url := fmt.Sprintf(config.GetString("app.php_url")+"/api/client/pay/create?amount=%v&account_no=%v&bank_code=%v&product=ThaiP2P&token=%v", params.RechargeNum, params.AccountNo, params.BankCode, token)
+	resp, getErr := http.Get(url)
+	body, _ := ioutil.ReadAll(resp.Body)
+	if getErr != nil {
+		echo.Error(c, "ValidatorError", "获取充值信息错误")
+		return
+	}
+	var result response.RespData
+	UnmarshalErr := json.Unmarshal(body, &result)
+	if UnmarshalErr != nil {
+		echo.Error(c, "ValidatorError", "json解析错误")
+		return
+	}
+	if result.Data.Success == false {
+		echo.Error(c, "ValidatorError", result.Data.Msg)
+		return
+	}
+	logger.Info(result)
 	userId, _ := c.Get("user_id")
 	userInfo, _ := c.Get("user")
 	DB := mysql.DB.Begin()
 	// 收集添加数据
+	AddData.PayId = int(result.Data.Result.(map[string]interface{})["id"].(float64))
 	AddData.UserId = userId.(int)
 	AddData.Email = userInfo.(map[string]interface{})["email"].(string)
 	AddData.Address = params.Address
@@ -109,7 +133,7 @@ func (h *TradeController) ReChargeHandler(c *gin.Context) {
 		return
 	}
 	DB.Commit()
-	echo.Success(c, AddData, "ok", "")
+	echo.Success(c, result.Data.Result, "ok", "")
 }
 
 // ReChargeLogHandler 充值记录

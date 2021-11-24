@@ -11,6 +11,7 @@ import (
 // Recharge 用户充值订单记录表
 type Recharge struct {
 	Id              int                `json:"id"`
+	PayId           int                `json:"pay_id"`            //支付订单id
 	UserId          int                `json:"user_id"`           //用户id
 	Email           string             `json:"email"`             //用户邮箱
 	Address         string             `json:"address"`           //充币地址

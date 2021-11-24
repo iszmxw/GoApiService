@@ -110,6 +110,8 @@ func SocketHuoBi(parentTopic string) {
 			return
 		}
 		if len(msgData) > 0 {
+			// 切换到 10 库
+			redis.Select(10)
 			// 收集数据缓存到redis
 			_, redisErr := redis.Add(topic, msgData, 0)
 			if redisErr != nil {
