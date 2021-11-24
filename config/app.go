@@ -26,6 +26,10 @@ func init() {
 		// php服务的地址
 		"php_url": config.Env("PHP_URL", "http://127.0.0.1:10087"),
 
+		// IMG URL用于存放图片的路径
+		"img_url": config.Env("IMG_URL", "http://localhost:80"),
+
+		// 是否开启 https
 		"https": config.Env("HTTPS", "0"),
 	})
 }
