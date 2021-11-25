@@ -49,8 +49,6 @@ func (h *KlineController) WsHandler(c *gin.Context) {
 		msg := string(message)
 		msg = strings.Trim(msg, "\"")
 		logger.Info(msg)
-		// 切换到 15 库
-		redis.Select(15)
 		// 2 小时内一个长连接禁止重复订阅相同的 topic
 		checkMsg := RequestId + ":" + msg
 		if redis.CheckExist(checkMsg) {
@@ -68,6 +66,8 @@ func (h *KlineController) WsHandler(c *gin.Context) {
 		go func(ws *wss.WsConn, msg string) {
 			// 为了释放for死循环的资源
 			for {
+				// 切换到 15 库
+				redis.Select(15)
 				push, getErr := redis.Get(msg)
 				if getErr != nil {
 					logger.Error(getErr)
