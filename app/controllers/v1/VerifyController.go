@@ -121,12 +121,13 @@ func (h *VerifyController) VerifyAdvancedHandle(c *gin.Context) {
 	DB := mysql.DB.Debug().Begin()
 	userId, _ := c.Get("user_id")
 	var v1 models.Verify
-	err = DB.Raw("select * from osx_user_img where user_id =?", userId.(int)).Scan(&v1).Error
-	if err != nil {
-		logger.Error(err)
-		echo.Error(c, "", "查询用户出错")
-		return
-	}
+	DB.Model(models.Verify{}).Where("user_id", userId).Find(&v1)
+	//err = DB.Raw("select * from osx_user_img where user_id =?", userId.(int)).Scan(&v1).Error
+	//if err != nil {
+	//	logger.Error(err)
+	//	echo.Error(c, "", "查询用户出错")
+	//	return
+	//}
 	//判断初级是否通过
 	if v1.Status != 2 {
 		echo.Error(c, "", "初级验证未通过")
