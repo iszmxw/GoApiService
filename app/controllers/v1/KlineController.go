@@ -49,9 +49,6 @@ func (h *KlineController) WsHandler(c *gin.Context) {
 		msg := string(message)
 		msg = strings.Trim(msg, "\"")
 		logger.Info(msg)
-
-		// 切换到 10 库
-		redis.Select(10)
 		// 2 小时内一个长连接禁止重复订阅相同的 topic
 		checkMsg := RequestId + ":" + msg
 		if redis.CheckExist(checkMsg) {

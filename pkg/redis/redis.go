@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/go-redis/redis"
 	"goapi/pkg/config"
+	"goapi/pkg/helpers"
 	"time"
 )
 
@@ -12,7 +13,7 @@ var Redis *redis.Client
 var expireTime = 600
 
 // ConnectDB 初始化模型
-func ConnectDB() {
+func ConnectDB(selectDB string) {
 	// 初始化 Redis 连接信息
 	var (
 		err       error
@@ -21,6 +22,10 @@ func ConnectDB() {
 		DefaultDB = config.GetInt("redis.db")
 		Pw        = config.GetString("redis.password")
 	)
+	if len(selectDB) > 0 {
+		// 选择库
+		DefaultDB = helpers.StringToInt(selectDB)
+	}
 	if len(Pw) > 0 {
 		Redis = redis.NewClient(&redis.Options{
 			Addr:     RedisIp + ":" + RedisPort,

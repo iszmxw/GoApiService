@@ -33,11 +33,11 @@ func init() {
 var wg sync.WaitGroup
 
 func main() {
+	db := conf.GetString("redis.db")
 	logger.Info("期权合约服务初始化")
 	//初始化 Redis
-	bootstrap.SetupRedis()
+	bootstrap.SetupRedis(db)
 	defer bootstrap.RedisClose()
-	db := conf.GetString("redis.db")
 	sub := redis.SubExpireEvent("__keyevent@" + db + "__:expired")
 	logger.Info("期权合约服务已启动")
 	for {

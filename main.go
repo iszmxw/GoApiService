@@ -35,7 +35,8 @@ func main() {
 	bootstrap.SetupDB()
 	// 初始化 Redis
 	fmt.Println("初始化 Redis")
-	bootstrap.SetupRedis()
+	db := conf.GetString("redis.db")
+	bootstrap.SetupRedis(db)
 	defer bootstrap.RedisClose()
 	// 初始化路由绑定
 	fmt.Println("加载路由")
