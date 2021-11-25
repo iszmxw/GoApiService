@@ -51,4 +51,7 @@ type ErrorCode1 struct {
 	SearchTimeErr                       string `code:"10045" msg:"搜索时间格式不正确 eg: 2006-01-02"`
 	OptionContractMinimum               string `code:"10046" msg:"当前交易额，低于最低消费"`
 	OrderStatusConfirm                  string `code:"10047" msg:"该订单已确认，请勿频繁操作"`
+	ParamAccountNo                      string `code:"10048" msg:"银行账号不能为空"`
+	ParamBankCode                       string `code:"10049" msg:"银行编码不能为空"`
+	ParamBankErr                        string `code:"10050" msg:"获取充值信息错误"`
 }

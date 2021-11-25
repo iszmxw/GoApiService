@@ -83,6 +83,7 @@ func (h *TradeController) ReChargeHandler(c *gin.Context) {
 	var (
 		params  requests.Recharge
 		AddData models.Recharge
+		result  response.RespData
 	)
 	_ = c.Bind(&params)
 	// 数据验证
@@ -92,30 +93,45 @@ func (h *TradeController) ReChargeHandler(c *gin.Context) {
 		echo.Error(c, "ValidatorError", msg)
 		return
 	}
-	token := c.Request.Header.Get("token")
-	url := fmt.Sprintf(config.GetString("app.php_url")+"/api/client/pay/create?amount=%v&account_no=%v&bank_code=%v&product=ThaiP2P&token=%v", params.RechargeNum, params.AccountNo, params.BankCode, token)
-	resp, getErr := http.Get(url)
-	body, _ := ioutil.ReadAll(resp.Body)
-	if getErr != nil {
-		echo.Error(c, "ValidatorError", "获取充值信息错误")
-		return
+	// 银行卡充值
+	if params.TopUpType == "2" {
+		// 银行账号不能为空
+		if len(params.AccountNo) <= 0 {
+			echo.Error(c, "ParamAccountNo", "")
+			return
+		}
+		// 银行编码不能为空
+		if len(params.BankCode) <= 0 {
+			echo.Error(c, "ParamBankCode", "")
+			return
+		}
+		token := c.Request.Header.Get("token")
+		url := fmt.Sprintf(config.GetString("app.php_url")+"/api/client/pay/create?amount=%v&account_no=%v&bank_code=%v&product=ThaiP2P&token=%v", params.RechargeNum, params.AccountNo, params.BankCode, token)
+		resp, getErr := http.Get(url)
+		body, _ := ioutil.ReadAll(resp.Body)
+		if getErr != nil {
+			echo.Error(c, "ParamBankErr", "")
+			return
+		}
+		UnmarshalErr := json.Unmarshal(body, &result)
+		if UnmarshalErr != nil {
+			echo.Error(c, "ParsingError", "")
+			return
+		}
+		if result.Data.Success == false {
+			logger.Error(errors.New(result.Data.Msg))
+			echo.Error(c, "ParamBankErr", "")
+			return
+		}
+		logger.Info(result)
+		// 添加收集数据
+		AddData.PayId = int(result.Data.Result.(map[string]interface{})["id"].(float64))
 	}
-	var result response.RespData
-	UnmarshalErr := json.Unmarshal(body, &result)
-	if UnmarshalErr != nil {
-		echo.Error(c, "ValidatorError", "json解析错误")
-		return
-	}
-	if result.Data.Success == false {
-		echo.Error(c, "ValidatorError", result.Data.Msg)
-		return
-	}
-	logger.Info(result)
 	userId, _ := c.Get("user_id")
 	userInfo, _ := c.Get("user")
 	DB := mysql.DB.Begin()
 	// 收集添加数据
-	AddData.PayId = int(result.Data.Result.(map[string]interface{})["id"].(float64))
+	AddData.TopUpType = helpers.StringToInt(params.TopUpType)
 	AddData.UserId = userId.(int)
 	AddData.Email = userInfo.(map[string]interface{})["email"].(string)
 	AddData.Address = params.Address
@@ -133,7 +149,15 @@ func (h *TradeController) ReChargeHandler(c *gin.Context) {
 		return
 	}
 	DB.Commit()
-	echo.Success(c, result.Data.Result, "ok", "")
+	// USDT 返回
+	if params.TopUpType == "1" {
+		echo.Success(c, AddData, "ok", "")
+	}
+	// 银行卡充值返回
+	if params.TopUpType == "2" {
+		echo.Success(c, result.Data.Result, "ok", "")
+	}
+	echo.Error(c, "", "")
 }
 
 // ReChargeLogHandler 充值记录

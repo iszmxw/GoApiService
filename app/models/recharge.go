@@ -11,6 +11,7 @@ import (
 // Recharge 用户充值订单记录表
 type Recharge struct {
 	Id              int                `json:"id"`
+	TopUpType       int                `json:"top_up_type"`       //充值类型：1-USDT 2-银行卡
 	PayId           int                `json:"pay_id"`            //支付订单id
 	UserId          int                `json:"user_id"`           //用户id
 	Email           string             `json:"email"`             //用户邮箱
