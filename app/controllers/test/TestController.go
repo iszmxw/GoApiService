@@ -13,6 +13,8 @@ type Controller struct {
 // SetHandler 登录
 func (h *Controller) SetHandler(c *gin.Context) {
 
+	// 切换到 1 库
+	redis.Select(1)
 	r, err := redis.Add("123456", "test", 10) // 缓存两个小时过期
 	if err != nil {
 		fmt.Println(err.Error())

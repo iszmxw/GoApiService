@@ -67,6 +67,7 @@ func (h *LoginController) LoginHandler(c *gin.Context) {
 	}
 	token := helpers.GetUUID()
 	loginKey := "login:user:" + helpers.IntToString(user.Id)
+	redis.Select(config.GetInt("redis.db"))
 	oldToken, _ := redis.Get(loginKey)
 	if len(oldToken) > 0 {
 		redis.Delete(oldToken)
@@ -118,6 +119,7 @@ func (h *LoginController) SendEmailRegisterHandler(c *gin.Context) {
 	}
 	Code := helpers.Rand(6)
 	key := "RegisterCode:" + params.Email
+	redis.Select(config.GetInt("redis.db"))
 	_, err1 := redis.Add(key, Code, 60*60*24)
 	if err1 != nil {
 		logger.Error(err1)
@@ -154,6 +156,7 @@ func (h *LoginController) VerifyRegisterHandler(c *gin.Context) {
 		return
 	}
 	// 检测验邮箱证码
+	redis.Select(config.GetInt("redis.db"))
 	Code, codeErr := redis.Get("RegisterCode:" + params.Email)
 	if codeErr != nil {
 		echo.Error(c, "VerCodeErr", "")
@@ -329,6 +332,7 @@ func (h *LoginController) SendEmailRetrieveHandler(c *gin.Context) {
 
 	Code := helpers.Rand(6)
 	key := "RetrieveCode:" + params.Email
+	redis.Select(config.GetInt("redis.db"))
 	_, err1 := redis.Add(key, Code, 60*60*24)
 	if err1 != nil {
 		echo.Error(c, "SendEmail", "")
@@ -358,6 +362,7 @@ func (h *LoginController) ResetVerifyHandler(c *gin.Context) {
 		return
 	}
 	// 检测验邮箱证码
+	redis.Select(config.GetInt("redis.db"))
 	Code, codeErr := redis.Get("RetrieveCode:" + params.Email)
 	if codeErr != nil {
 		echo.Error(c, "VerCodeErr", "")
@@ -387,6 +392,7 @@ func (h *LoginController) ResetPasswordHandler(c *gin.Context) {
 		return
 	}
 	// 检测验邮箱证码
+	redis.Select(config.GetInt("redis.db"))
 	Code, codeErr := redis.Get("RetrieveCode:" + params.Email)
 	if codeErr != nil {
 		echo.Error(c, "VerCodeErr", "")

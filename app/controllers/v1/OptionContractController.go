@@ -9,6 +9,7 @@ import (
 	"goapi/app/requests"
 	"goapi/app/response"
 	"goapi/pkg/agent_dividend"
+	"goapi/pkg/config"
 	"goapi/pkg/echo"
 	"goapi/pkg/helpers"
 	"goapi/pkg/huobi"
@@ -282,6 +283,7 @@ func (h *OptionContractController) TradeHandler(c *gin.Context) {
 		return
 	}
 	ID := helpers.IntToString(addData.Id)
+	redis.Select(config.GetInt("redis.db"))
 	_, rErr := redis.Add("option_contract:order:"+ID, "期权合约秒交易订单处理", request.Seconds)
 	if rErr != nil {
 		logger.Error(errors.New("期权合约Redis缓存失败：" + rErr.Error()))
