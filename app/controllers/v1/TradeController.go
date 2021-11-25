@@ -126,6 +126,8 @@ func (h *TradeController) ReChargeHandler(c *gin.Context) {
 		logger.Info(result)
 		// 添加收集数据
 		AddData.PayId = int(result.Data.Result.(map[string]interface{})["id"].(float64))
+	} else {
+		params.TopUpType = "1"
 	}
 	userId, _ := c.Get("user_id")
 	userInfo, _ := c.Get("user")
@@ -149,17 +151,15 @@ func (h *TradeController) ReChargeHandler(c *gin.Context) {
 		return
 	}
 	DB.Commit()
-	// USDT 返回
-	if params.TopUpType == "1" {
-		echo.Success(c, AddData, "ok", "")
-		return
-	}
 	// 银行卡充值返回
 	if params.TopUpType == "2" {
 		echo.Success(c, result.Data.Result, "ok", "")
 		return
+	} else {
+		// USDT 返回
+		echo.Success(c, AddData, "ok", "")
+		return
 	}
-	echo.Error(c, "", "")
 }
 
 // ReChargeLogHandler 充值记录
