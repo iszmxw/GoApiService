@@ -30,7 +30,7 @@ func init() {
 		// IMG URL用于存放图片的路径
 		"img_url": config.Env("IMG_URL", "http://localhost:80"),
 
-		// 是否开启 https
+
 		"https": config.Env("HTTPS", "0"),
 	})
 }

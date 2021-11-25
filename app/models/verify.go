@@ -9,7 +9,8 @@ import (
 type Verify struct {
 	UserId        int            `json:"user_id" form:"user_id"`                 //用户id从token中拿
 	IdentityCard  string         `json:"identity_card" form:"identity_card"`     //身份证信息
-	Status        int            `json:"status" form:"status"`                   //状态0未提交 1初级验证  2高级验证
+	Status        int            `json:"status" form:"status"`                   //初级验证状态 1申请中 2通过  -1不通过
+	Status2       int            `json:"status2" form:"status2"`                 //高级验证状态 1申请中 2通过  -1不通过
 	Email         string         `json:"email " form:"email"`                    //邮箱
 	FullName      string         `json:"full_name" form:"full_name"`             //用户真实姓名
 	ImgCardBehind string         `json:"img_card_behind" form:"img_card_behind"` //身份证后面图片
