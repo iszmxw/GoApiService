@@ -50,10 +50,8 @@ func (h *VerifyController) VerifyPrimaryHandle(c *gin.Context) {
 	DB := mysql.DB.Debug().Begin()
 	var v1 models.Verify
 	DB.Model(models.Verify{}).Where("user_id", userId).Find(&v1)
-
 	if v1.Status == -1 {
-
-		SErr := DB.Model(models.Verify{}).Where("user_id", userId).Updates(map[string]interface{}{"identity_card": params.IdentityCard, "status": 0, "full_name": params.FullName}).Error
+		SErr := DB.Model(models.Verify{}).Where("user_id", userId).Updates(map[string]interface{}{"identity_card": params.IdentityCard, "status": 1, "full_name": params.FullName}).Error
 		if SErr != nil {
 			DB.Rollback()
 			logger.Error(SErr)
@@ -64,16 +62,17 @@ func (h *VerifyController) VerifyPrimaryHandle(c *gin.Context) {
 		DB.Commit()
 		return
 	}
-	//if v1.UserId != 0 {
-	//	echo.Error(c, "", "已经提交初级验证信息")
-	//	return
-	//}
-	if v1.Status >= 1 {
+
+	if v1.Status >= 2 {
 		echo.Error(c, "", "用户已完成初级认证")
 		return
 	}
-	if v1.UserId != 0 {
+	if v1.Status == 1 {
 		echo.Error(c, "", "已提交初级认证,请等待审核通知")
+		return
+	}
+	if v1.UserId != 0 {
+		echo.Error(c, "", "已经提交初级验证信息")
 		return
 	}
 	//都不符合上面两种情况才创建
@@ -84,7 +83,7 @@ func (h *VerifyController) VerifyPrimaryHandle(c *gin.Context) {
 		IdentityCard: params.IdentityCard,
 		FullName:     params.FullName,
 		Email:        Email,
-		Status:       0, //前端提交后修改状态为0 后端审核后改为1
+		Status:       1, //前端提交后修改状态为0 后端审核后改为1  3为审核中
 	}
 
 	CreateErr := DB.Model(models.Verify{}).Create(&v).Error
@@ -128,15 +127,24 @@ func (h *VerifyController) VerifyAdvancedHandle(c *gin.Context) {
 		echo.Error(c, "", "查询用户出错")
 		return
 	}
-	if v1.Status == 2 {
-		echo.Error(c, "", "用户已完成验证")
-		return
-	}
-	if v1.Status == 0 {
+	//判断初级是否通过
+	if v1.Status != 2 {
 		echo.Error(c, "", "初级验证未通过")
 		return
 	}
-	if v1.Status == -1 {
+	if v1.Status2 == 1 {
+		echo.Error(c, "", "高级验证已提交,请勿重复提交")
+		return
+	}
+	if v1.Status2 == 2 {
+		echo.Error(c, "", "用户已完成验证")
+		return
+	}
+	//if v1.Status == 0 {
+	//	echo.Error(c, "", "初级验证未通过")
+	//	return
+	//}
+	if v1.Status2 == -1 {
 		filedir := fmt.Sprintf("./resource/photo/%d/", userId)
 		Rerr := os.RemoveAll(filedir)
 		if Rerr != nil {
@@ -182,7 +190,7 @@ func (h *VerifyController) VerifyAdvancedHandle(c *gin.Context) {
 	v1.ImgCardBehind = ip + apiUrl + filedir + "img_card_behind.jpg"
 	v1.ImgBankFront = ip + apiUrl + filedir + "img_bank_front.jpg"
 	v1.ImgBankBehind = ip + apiUrl + filedir + "img_bank_behind.jpg"
-	v1.Status = 1
+	v1.Status2 = 1
 	sErr := DB.Model(models.Verify{}).Where("user_id", userId).Save(&v1).Error
 	if sErr != nil {
 		logger.Error(err)
@@ -236,6 +244,7 @@ func (h *VerifyController) UserVerifyStatusHandle(c *gin.Context) {
 	DB := mysql.DB.Debug()
 	var Verify response.Verify
 	cErr := DB.Model(models.Verify{}).Where("user_id", userId).Find(&Verify).Error
+	logger.Info(Verify)
 	if cErr != nil {
 		logger.Error(cErr)
 		echo.Error(c, "", "用户未验证")
