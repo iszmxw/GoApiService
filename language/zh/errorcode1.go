@@ -54,4 +54,5 @@ type ErrorCode1 struct {
 	ParamAccountNo                      string `code:"10048" msg:"银行账号不能为空"`
 	ParamBankCode                       string `code:"10049" msg:"银行编码不能为空"`
 	ParamBankErr                        string `code:"10050" msg:"获取充值信息错误"`
+	WalletAddressErr                    string `code:"10051" msg:"提币地址未设置"`
 }

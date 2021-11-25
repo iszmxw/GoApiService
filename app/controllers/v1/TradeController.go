@@ -387,6 +387,11 @@ func (h *TradeController) WithdrawHandler(c *gin.Context) {
 	}
 
 	DB.Model(models.WalletAddress{}).Where("id", params.AddressId).Find(&WalletAddress)
+	if len(WalletAddress.Address) <= 0 {
+		DB.Rollback()
+		echo.Error(c, "WalletAddressErr", "")
+		return
+	}
 	// 收集添加数据
 	AddData.UserId = userId.(int)
 	AddData.Email = userInfo.(map[string]interface{})["email"].(string)

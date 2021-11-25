@@ -154,9 +154,13 @@ func RegisterWebRoutes(router *gin.RouterGroup) {
 		//上传图片 用于用户验证
 		verify := ApiRoute.Group("/verify")
 		{
+			// 初级验证
 			verify.POST("/primary", v1Group.VerifyController.VerifyPrimaryHandle)
+			// 高级验证
 			verify.POST("/advanced", v1Group.VerifyController.VerifyAdvancedHandle)
+			// 下载图片
 			verify.GET("/downloadImg", v1Group.VerifyController.VerifyDownloadHandle)
+			// 返回用户验证信息
 			verify.GET("/verifyStatus", v1Group.VerifyController.UserVerifyStatusHandle)
 		}
 	}

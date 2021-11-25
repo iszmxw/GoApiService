@@ -54,4 +54,5 @@ type ErrorCode struct {
 	ParamAccountNo                      string `code:"10048" msg:"Bank account cannot be empty"`
 	ParamBankCode                       string `code:"10049" msg:"Bank code cannot be empty"`
 	ParamBankErr                        string `code:"10050" msg:"Error getting recharge information"`
+	WalletAddressErr                    string `code:"10051" msg:"The withdrawal address is not set"`
 }
