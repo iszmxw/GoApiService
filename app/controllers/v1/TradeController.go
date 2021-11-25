@@ -152,10 +152,12 @@ func (h *TradeController) ReChargeHandler(c *gin.Context) {
 	// USDT 返回
 	if params.TopUpType == "1" {
 		echo.Success(c, AddData, "ok", "")
+		return
 	}
 	// 银行卡充值返回
 	if params.TopUpType == "2" {
 		echo.Success(c, result.Data.Result, "ok", "")
+		return
 	}
 	echo.Error(c, "", "")
 }
