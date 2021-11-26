@@ -17,7 +17,7 @@ import (
 func Client() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// 设置语言，默认英文
-		SetLang(c, "zh")
+		SetLang(c, "en")
 		path := c.FullPath()
 		switch path {
 		case "/v1/api/user/login":
@@ -87,7 +87,7 @@ func CheckLogin(c *gin.Context) {
 	c.Set("language", user["language"])
 	c.Set("user_id", userId)
 	// 再次确认设置语言
-	SetLang(c, "zh")
+	SetLang(c, "en")
 	// 继续往下面执行
 	c.Next()
 }
