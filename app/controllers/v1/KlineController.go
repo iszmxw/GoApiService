@@ -51,7 +51,7 @@ func (h *KlineController) WsHandler(c *gin.Context) {
 		msg = strings.Trim(msg, "\"")
 		logger.Info(msg)
 		// 2 小时内一个长连接禁止重复订阅相同的 topic
-		checkMsg := RequestId + ":" + msg
+		checkMsg := "socket_request:" + RequestId + ":" + msg
 		if redis.CheckExist(checkMsg) {
 			logger.Info("该订阅已存在，请勿重新订阅")
 			continue
