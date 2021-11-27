@@ -108,10 +108,6 @@ func SubExpireEvent(channels string) *redis.PubSub {
 	//}
 }
 
-func Select(db int) {
-	Redis.Do("select", db)
-}
-
 func Close() {
 	err := Redis.Close()
 	if err != nil {

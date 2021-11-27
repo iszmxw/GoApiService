@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"goapi/pkg/config"
 	"goapi/pkg/echo"
 	"goapi/pkg/logger"
 	"goapi/pkg/redis"
@@ -60,7 +59,6 @@ func CheckLogin(c *gin.Context) {
 		c.Abort()
 		return
 	}
-	redis.Select(config.GetInt("redis.db"))
 	strInfo, err = redis.Get(tokenString)
 	if err != nil {
 		echo.Error(c, "LoginError", "")

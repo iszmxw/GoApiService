@@ -8,6 +8,7 @@ import (
 	"goapi/pkg/huobi"
 	"goapi/pkg/logger"
 	"goapi/pkg/redis"
+	"goapi/pkg/redis_socket"
 	"goapi/pkg/websocket"
 	"net/http"
 	"strings"
@@ -55,7 +56,7 @@ func (h *KlineController) WsHandler(c *gin.Context) {
 			logger.Info("该订阅已存在，请勿重新订阅")
 			continue
 		}
-		_, redisAddErr := redis.Add(checkMsg, msg, 60*60*2)
+		_, redisAddErr := redis.Add(checkMsg, msg, 30*60) // 半个小时内不允许重复请求
 		if redisAddErr != nil {
 			logger.Error(redisAddErr)
 			return
@@ -66,9 +67,7 @@ func (h *KlineController) WsHandler(c *gin.Context) {
 		go func(ws *wss.WsConn, msg string) {
 			// 为了释放for死循环的资源
 			for {
-				// 切换到 15 库
-				redis.Select(15)
-				push, getErr := redis.Get(msg)
+				push, getErr := redis_socket.Get(msg)
 				if getErr != nil {
 					logger.Error(getErr)
 					return

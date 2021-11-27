@@ -29,7 +29,7 @@
 - 打包期权合约多少秒后消费服务（需要检查redis配置）
 
 ```shell
-GOOS=linux GOARCH=amd64 go build -o optionContractService service/option_contract/main.go
+GOOS=linux GOARCH=amd64 go build -o optionContractService service/option_contract/option_contract.go
 ```
 
     Redis部分设置
