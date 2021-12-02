@@ -300,10 +300,23 @@ func (h *LoginController) VerifyRegisterHandler(c *gin.Context) {
 
 	// 否则，提交事务
 	DB.Commit()
+
+	// 注册完登录
+	token := helpers.GetUUID()
+	loginKey := "login:user:" + helpers.IntToString(user.Id)
+	oldToken, _ := redis.Get(loginKey)
+	if len(oldToken) > 0 {
+		redis.Delete(oldToken)
+	}
+	info, _ := json.Marshal(user)            //转换成JSON返回的是byte[]
+	_, _ = redis.Add(token, string(info), 0) // 持久化缓存
+	_, _ = redis.Add(loginKey, token, 0)     // 持久化缓存
+	// 注册完登录
 	echo.Success(c, gin.H{
 		"id":       user.Id,
 		"language": user.Language,
 		"email":    user.Email,
+		"token":    token,
 	}, "", "")
 }
 
