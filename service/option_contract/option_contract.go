@@ -120,7 +120,8 @@ func UpdateResult(id string) {
 		// 正常计算盈亏
 		if result.OrderType == Updates["order_result"] {
 
-			Profit := result.Price + (result.Price * result.ProfitRatio / 100) - (result.Price * result.HandleFee / 100)
+			//Profit := result.Price + (result.Price * result.ProfitRatio / 100) - (result.Price * result.HandleFee / 100)
+			Profit := (result.Price * result.ProfitRatio / 100) - (result.Price * result.HandleFee / 100)
 			logger.Info(fmt.Sprintf("%v + (%v * %v) - (%v * %v)", result.Price, result.Price, result.ProfitRatio/100, result.Price, result.HandleFee/100))
 			logger.Info(fmt.Sprintf("最终盈利 : %v", Profit))
 			Updates["result_profit"] = Profit
@@ -193,7 +194,8 @@ func UpdateResult(id string) {
 				Updates["order_result"] = "2"
 				logger.Info("当前用户买跌，干扰交割结果为跌，让用户盈利")
 			}
-			Profit := result.Price + (result.Price * result.ProfitRatio / 100) - (result.Price * result.HandleFee / 100)
+			//Profit := result.Price + (result.Price * result.ProfitRatio / 100) - (result.Price * result.HandleFee / 100)
+			Profit := (result.Price * result.ProfitRatio / 100) - (result.Price * result.HandleFee / 100)
 			logger.Info(fmt.Sprintf("%v + (%v * %v) - (%v * %v)", result.Price, result.Price, result.ProfitRatio/100, result.Price, result.HandleFee/100))
 			logger.Info(fmt.Sprintf("最终盈利 : %v", Profit))
 			Updates["result_profit"] = Profit
