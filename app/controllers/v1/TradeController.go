@@ -107,14 +107,17 @@ func (h *TradeController) ReChargeHandler(c *gin.Context) {
 		}
 		token := c.Request.Header.Get("token")
 		url := fmt.Sprintf(config.GetString("app.php_url")+"/api/client/pay/create?amount=%v&account_no=%v&bank_code=%v&product=ThaiP2P&token=%v", params.RechargeNum, params.AccountNo, params.BankCode, token)
+		logger.Info(url)
 		resp, getErr := http.Get(url)
 		body, _ := ioutil.ReadAll(resp.Body)
 		if getErr != nil {
+			logger.Error(getErr)
 			echo.Error(c, "ParamBankErr", "")
 			return
 		}
 		UnmarshalErr := json.Unmarshal(body, &result)
 		if UnmarshalErr != nil {
+			logger.Error(UnmarshalErr)
 			echo.Error(c, "ParsingError", "")
 			return
 		}
