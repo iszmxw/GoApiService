@@ -82,6 +82,7 @@ func (h *OptionContractController) LogHandler(c *gin.Context) {
 	arr := lists.Data.([]response.OptionContractTransaction)
 	for i := 0; i < len(arr); i++ {
 		arr[i].Time = arr[i].Seconds
+		arr[i].ResultProfit = fmt.Sprintf("%.3f", arr[i].ResultProfit)
 		if arr[i].Status == 0 && len(request.Status) > 0 {
 			// 计算倒计时
 			arr[i].Seconds = arr[i].CreatedAt.Unix() + arr[i].Seconds - time.Now().Unix()
