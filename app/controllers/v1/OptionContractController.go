@@ -101,8 +101,8 @@ func (h *OptionContractController) LogHandler(c *gin.Context) {
 	lists.Data = arr
 	echo.Success(c, gin.H{
 		"list":       lists,
-		"today_win":  data.AllResultProfit,
-		"today_lose": data1.AllResultProfit,
+		"today_win":  fmt.Sprintf("%.3f", data.AllResultProfit),
+		"today_lose": fmt.Sprintf("%.3f", data1.AllResultProfit),
 	}, "ok", "")
 }
 
