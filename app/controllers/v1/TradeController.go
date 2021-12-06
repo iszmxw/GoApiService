@@ -215,7 +215,7 @@ func (h *TradeController) GetWithdrawConfigHandler(c *gin.Context) {
 	DB := mysql.DB.Debug()
 	DB.Debug().Model(models.Globals{}).Where("fields", "withdrawal_fees").Find(&Fees)
 	DB.Debug().Model(&models.Globals{}).Where("fields", "min_amount").Find(&MinAmount)
-	if Fees.Id <= 0 || Fees.Value <= 0 {
+	if Fees.Id <= 0 {
 		echo.Error(c, "withdrawalFeesIsNotExist", "")
 		return
 	}
