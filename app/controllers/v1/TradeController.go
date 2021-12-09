@@ -105,8 +105,12 @@ func (h *TradeController) ReChargeHandler(c *gin.Context) {
 			echo.Error(c, "ParamBankCode", "")
 			return
 		}
+		// 检测产品参数，默认为 ThaiP2P
+		if len(params.Product) <= 0 {
+			params.Product = "ThaiP2P"
+		}
 		token := c.Request.Header.Get("token")
-		url := fmt.Sprintf(config.GetString("app.php_url")+"/api/client/pay/create?amount=%v&account_no=%v&bank_code=%v&product=ThaiP2P&token=%v", params.RechargeNum, params.AccountNo, params.BankCode, token)
+		url := fmt.Sprintf(config.GetString("app.php_url")+"/api/client/pay/create?amount=%v&account_no=%v&bank_code=%v&product=%v&token=%v", params.RechargeNum, params.AccountNo, params.BankCode, params.Product, token)
 		logger.Info(url)
 		resp, getErr := http.Get(url)
 		body, _ := ioutil.ReadAll(resp.Body)

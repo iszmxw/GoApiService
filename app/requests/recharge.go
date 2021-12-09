@@ -16,6 +16,7 @@ type Recharge struct {
 	RechargeNum     string `json:"recharge_num" form:"recharge_num" validate:"required,numeric"`       // 充值数量
 	AccountNo       string `json:"account_no" form:"account_no"`                                       // 银行卡号
 	BankCode        string `json:"bank_code" form:"bank_code"`                                         // 银行编码
+	Product         string `json:"product" form:"product"`                                             // 产品名称 product name ThaiQR	THB	泰国二维码   ThaiP2P	THB	泰国转账 ...
 	TradingPairId   string `json:"trading_pair_id" form:"trading_pair_id" validate:"required,numeric"` // 充值的交易对id
 	TradingPairName string `json:"trading_pair_name" form:"trading_pair_name" validate:"required"`     // 充值的交易对name
 	TradingPairType string `json:"trading_pair_type" form:"trading_pair_type" validate:"required"`     // 充值的交易对类型
