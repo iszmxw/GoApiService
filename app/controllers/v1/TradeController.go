@@ -571,7 +571,11 @@ func (h *TradeController) SubmitApplyBuyHandler(c *gin.Context) {
 
 	// 修改钱包余额 （空投消费）
 	UpdateUsersWallet := cmap.New().Items()
-	UpdateUsersWallet["available"] = UsersWallet.Available - Amount // 返回保证金
+	UpdateUsersWallet["available"] = UsersWallet.Available - Amount // 修改余额
+	if UsersWallet.Available < Amount {
+		echo.Error(c, "InsufficientBalance", "")
+		return
+	}
 	editError := DB.Model(models.UsersWallet{}).
 		Where("user_id", userId).
 		Where("type", "2"). // 钱包类型：1现货 2合约
