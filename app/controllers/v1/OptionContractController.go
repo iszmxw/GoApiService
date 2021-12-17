@@ -75,7 +75,7 @@ func (h *OptionContractController) LogHandler(c *gin.Context) {
 	// 计算今日总盈
 	mysql.DB.Debug().Model(models.OptionContractTransaction{}).Select("sum(result_profit) - sum(price) as all_result_profit").Where("user_id", userId).Where("updated_at >= ?", strings.Trim(today, "\"")).Where("result_profit > ?", 0).Find(&data)
 	// 计算今日亏
-	mysql.DB.Debug().Model(models.OptionContractTransaction{}).Select("sum(result_profit) - sum(price) as all_result_profit").Where("user_id", userId).Where("updated_at >= ?", strings.Trim(today, "\"")).Where("result_profit < ?", 0).Find(&data1)
+	mysql.DB.Debug().Model(models.OptionContractTransaction{}).Select("sum(result_profit) as all_result_profit").Where("user_id", userId).Where("updated_at >= ?", strings.Trim(today, "\"")).Where("result_profit < ?", 0).Find(&data1)
 	// 绑定接收的 json 数据到结构体中
 	DB.GetPaginate(where, "updated_at desc", int64(request.Page), int64(request.Limit), &lists)
 	logger.Info(fmt.Sprintf("%T", lists.Data))
