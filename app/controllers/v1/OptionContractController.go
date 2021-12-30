@@ -153,10 +153,9 @@ func (h *OptionContractController) TradeHandler(c *gin.Context) {
 	addData.Price = request.Price                       // 交易金额
 	addData.BuyPrice = request.BuyPrice                 // 购买价格
 	// 开启数据库
-	DB := mysql.DB.Debug().Begin()
+	DB := mysql.DB.Debug()
 	DB.Model(models.User{}).Where("id", userId).Find(&UserStatus)
 	if UserStatus.Status == "1" {
-		DB.Rollback()
 		echo.Error(c, "UserIsLock", "")
 		return
 	}
@@ -195,7 +194,6 @@ func (h *OptionContractController) TradeHandler(c *gin.Context) {
 	logger.Info(arrayType)
 	// 该函数会打乱数组原有的顺序
 	if !helpers.InArray("3", arrayType) {
-		DB.Rollback()
 		echo.Error(c, "CurrencyTypeIsNotAllowed", "")
 		return
 	}
@@ -229,7 +227,6 @@ func (h *OptionContractController) TradeHandler(c *gin.Context) {
 	// 用户可用余额不足
 	if UsersWallet.Id <= 0 || UsersWallet.Available <= 0 || UsersWallet.Available < Price {
 		logger.Error(errors.New(fmt.Sprintf("UsersWallet.Available: %v <= 0 || UsersWallet.Id: %v <= 0", UsersWallet.Available, UsersWallet.Id)))
-		DB.Rollback()
 		echo.Error(c, "InsufficientBalance", "")
 		return
 	}
@@ -239,6 +236,7 @@ func (h *OptionContractController) TradeHandler(c *gin.Context) {
 	if request.OrderType == "2" {
 		addData.Remark = "买跌"
 	}
+	DB = DB.Begin()
 	cErr := DB.Model(&models.OptionContractTransaction{}).Create(&addData).Error
 	if cErr != nil {
 		DB.Rollback()
