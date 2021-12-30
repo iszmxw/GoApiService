@@ -1,6 +1,7 @@
 # GoApiService
 
-- 一个可以自动构建CURD控制器的go-api服务
+- 一个可以自动构建CURD控制器的go-api服务，参考之前写的基础版本进行演变而来 [GoRbacApiService](https://github.com/iszmxw/GoRbacApiService)
+
 
 ## 申明
 
